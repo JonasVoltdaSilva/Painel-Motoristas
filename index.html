@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Motoristas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Russo+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="painel">
+    <!-- DOCA -->
+    <section class="card doca">
+      <div class="doca-label">DOCA</div>
+      <div class="doca-numero">01</div>
+    </section>
+
+    <!-- CENTRO: motorista atual -->
+    <section class="card centro">
+      <div class="status">
+        <span class="status-dot"></span>
+        <span class="status-texto">CARREGAMENTO FINALIZADO</span>
+      </div>
+
+      <div class="motorista-bloco">
+        <p class="rotulo">MOTORISTA</p>
+        <h1 class="motorista-nome">ARIANA GRANDE</h1>
+        <p class="placa">6969-ARI</p>
+      </div>
+
+      <div class="veiculo-bloco">
+        <p class="veiculo-nome">POP STAR</p>
+        <p class="veiculo-tipo">CARRETA · PALETIZADA</p>
+      </div>
+    </section>
+
+    <!-- HISTÓRICO -->
+    <aside class="historico">
+      <header class="historico-header">
+        <h2>HISTORICO</h2>
+        <button class="edit-btn" aria-label="Editar histórico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+      </header>
+
+      <ul class="historico-lista">
+        <li class="historico-item">
+          <p class="item-doca">Doca 11</p>
+          <p class="item-info">RENATO NOVAES - AGUARDANDO MOTORISTA</p>
+        </li>
+        <li class="historico-item">
+          <p class="item-doca">Doca 02</p>
+          <p class="item-info">LANA DEL - AGUARDANDO MOTORISTA</p>
+        </li>
+        <li class="historico-item">
+          <p class="item-doca">Doca 11</p>
+          <p class="item-info">RENATO NOVAES - AGUARDANDO MOTORISTA</p>
+        </li>
+        <li class="historico-item">
+          <p class="item-doca">Doca 01</p>
+          <p class="item-info">CARLOS SILVA - CARREGAMENTO</p>
+        </li>
+        <li class="historico-item">
+          <p class="item-doca">Doca 02</p>
+          <p class="item-info">ANA SOUZA - CARREGAMENTO</p>
+        </li>
+        <li class="historico-item">
+          <p class="item-doca">Doca 07</p>
+          <p class="item-info">MARCOS OLIVEIRA - CARREGAMENTO</p>
+        </li>
+      </ul>
+    </aside>
+  </main>
+</body>
+</html>

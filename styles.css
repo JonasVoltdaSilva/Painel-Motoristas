@@ -1,0 +1,275 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --verde: #1fe39a;
+  --verde-glow: rgba(31, 227, 154, 0.55);
+  --verde-borda: rgba(31, 227, 154, 0.35);
+  --bg-escuro: #050a14;
+  --bg-card: rgba(8, 18, 32, 0.55);
+  --texto-claro: #f4faff;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background: var(--bg-escuro);
+  color: var(--texto-claro);
+  font-family: "Russo One", "Orbitron", system-ui, sans-serif;
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(31, 227, 154, 0.35), transparent 55%),
+    radial-gradient(ellipse at 70% 40%, rgba(40, 90, 220, 0.45), transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(31, 227, 154, 0.22), transparent 60%),
+    linear-gradient(180deg, #03070f 0%, #050a14 100%);
+  z-index: -1;
+}
+
+.painel {
+  display: grid;
+  grid-template-columns: 1fr 2.4fr 1fr;
+  gap: 18px;
+  padding: 22px;
+  height: 100vh;
+  width: 100vw;
+}
+
+.card {
+  border: 1.5px solid var(--verde-borda);
+  border-radius: 22px;
+  background: var(--bg-card);
+  backdrop-filter: blur(6px);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 60px rgba(31, 227, 154, 0.06),
+    0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== DOCA ===== */
+.doca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.doca-label {
+  font-family: "Russo One", sans-serif;
+  color: var(--verde);
+  font-size: 1.6rem;
+  letter-spacing: 8px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px var(--verde-glow);
+}
+
+.doca-numero {
+  font-family: "Russo One", sans-serif;
+  font-size: 18rem;
+  line-height: 1;
+  color: #eafff5;
+  text-shadow:
+    0 0 12px var(--verde-glow),
+    0 0 30px var(--verde-glow),
+    0 0 60px rgba(31, 227, 154, 0.35);
+}
+
+/* ===== CENTRO ===== */
+.centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 24px 36px;
+  text-align: center;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--verde);
+  font-family: "Russo One", sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px var(--verde-glow);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px var(--verde), 0 0 20px var(--verde-glow);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+
+.motorista-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.rotulo {
+  color: var(--verde);
+  font-family: "Russo One", sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 5px;
+  text-shadow: 0 0 8px var(--verde-glow);
+}
+
+.motorista-nome {
+  font-family: "Russo One", sans-serif;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 9vw, 8rem);
+  line-height: 1;
+  letter-spacing: 4px;
+  background: linear-gradient(180deg, #ffffff 0%, #cfeee0 45%, #a9d8c5 55%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 0 30px rgba(255, 255, 255, 0.35),
+    0 0 60px rgba(31, 227, 154, 0.25);
+  filter: drop-shadow(0 4px 18px rgba(31, 227, 154, 0.25));
+}
+
+.placa {
+  color: var(--verde);
+  font-family: "Russo One", sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 6px;
+  text-shadow: 0 0 10px var(--verde-glow), 0 0 22px var(--verde-glow);
+}
+
+.veiculo-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.veiculo-nome {
+  font-family: "Russo One", sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 4px;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.veiculo-tipo {
+  font-family: "Russo One", sans-serif;
+  color: #ffd9d9;
+  font-size: 0.95rem;
+  letter-spacing: 4px;
+  text-shadow: 0 0 8px rgba(255, 120, 120, 0.4);
+}
+
+/* ===== HISTÓRICO ===== */
+.historico {
+  border: 1.5px solid var(--verde-borda);
+  border-radius: 22px;
+  background: var(--bg-card);
+  backdrop-filter: blur(6px);
+  padding: 18px 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow:
+    inset 0 0 60px rgba(31, 227, 154, 0.06),
+    0 0 30px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.historico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.historico-header h2 {
+  font-family: "Russo One", sans-serif;
+  color: #eafff5;
+  font-size: 1.05rem;
+  letter-spacing: 4px;
+  font-weight: 400;
+}
+
+.edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--verde);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.edit-btn:hover {
+  background: rgba(31, 227, 154, 0.1);
+}
+
+.historico-lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 6px;
+  flex: 1;
+}
+
+.historico-lista::-webkit-scrollbar {
+  width: 4px;
+}
+.historico-lista::-webkit-scrollbar-track {
+  background: rgba(31, 227, 154, 0.06);
+  border-radius: 4px;
+}
+.historico-lista::-webkit-scrollbar-thumb {
+  background: rgba(31, 227, 154, 0.4);
+  border-radius: 4px;
+}
+
+.historico-item {
+  border: 1.2px solid var(--verde-borda);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(8, 22, 36, 0.45);
+  box-shadow: inset 0 0 20px rgba(31, 227, 154, 0.05);
+}
+
+.item-doca {
+  font-family: "Russo One", sans-serif;
+  color: #eafff5;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.item-info {
+  font-family: "Russo One", sans-serif;
+  color: #c8e6da;
+  font-size: 0.78rem;
+  letter-spacing: 1.5px;
+  line-height: 1.35;
+}

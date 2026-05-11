@@ -5,12 +5,15 @@
 }
 
 :root {
-  --verde: #1fe39a;
-  --verde-glow: rgba(31, 227, 154, 0.55);
-  --verde-borda: rgba(31, 227, 154, 0.35);
+  --verde: #4ade80;
+  --verde-suave: rgba(74, 222, 128, 0.75);
+  --verde-glow: rgba(74, 222, 128, 0.25);
+  --verde-borda: rgba(74, 222, 128, 0.18);
   --bg-escuro: #050a14;
-  --bg-card: rgba(8, 18, 32, 0.55);
-  --texto-claro: #f4faff;
+  --vidro: rgba(255, 255, 255, 0.04);
+  --vidro-borda: rgba(255, 255, 255, 0.08);
+  --texto-claro: rgba(255, 255, 255, 0.92);
+  --texto-suave: rgba(255, 255, 255, 0.6);
 }
 
 html, body {
@@ -18,8 +21,11 @@ html, body {
   width: 100%;
   background: var(--bg-escuro);
   color: var(--texto-claro);
-  font-family: "Russo One", "Orbitron", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-weight: 400;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::before {
@@ -27,9 +33,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 60%, rgba(31, 227, 154, 0.35), transparent 55%),
-    radial-gradient(ellipse at 70% 40%, rgba(40, 90, 220, 0.45), transparent 60%),
-    radial-gradient(ellipse at 50% 100%, rgba(31, 227, 154, 0.22), transparent 60%),
+    radial-gradient(ellipse at 30% 60%, rgba(74, 222, 128, 0.18), transparent 55%),
+    radial-gradient(ellipse at 70% 40%, rgba(40, 90, 220, 0.25), transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(74, 222, 128, 0.12), transparent 60%),
     linear-gradient(180deg, #03070f 0%, #050a14 100%);
   z-index: -1;
 }
@@ -37,22 +43,23 @@ body::before {
 .painel {
   display: grid;
   grid-template-columns: 1fr 2.4fr 1fr;
-  gap: 18px;
-  padding: 22px;
+  gap: 16px;
+  padding: 20px;
   height: 100vh;
   width: 100vw;
 }
 
 .card {
-  border: 1.5px solid var(--verde-borda);
-  border-radius: 22px;
-  background: var(--bg-card);
-  backdrop-filter: blur(6px);
+  border: 1px solid var(--vidro-borda);
+  border-radius: 20px;
+  background: var(--vidro);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   position: relative;
   overflow: hidden;
   box-shadow:
-    inset 0 0 60px rgba(31, 227, 154, 0.06),
-    0 0 30px rgba(0, 0, 0, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== DOCA ===== */
@@ -65,23 +72,20 @@ body::before {
 }
 
 .doca-label {
-  font-family: "Russo One", sans-serif;
-  color: var(--verde);
-  font-size: 1.6rem;
-  letter-spacing: 8px;
-  margin-bottom: 10px;
-  text-shadow: 0 0 10px var(--verde-glow);
+  color: var(--verde-suave);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 6px;
+  margin-bottom: 4px;
 }
 
 .doca-numero {
-  font-family: "Russo One", sans-serif;
-  font-size: 18rem;
+  font-size: 9rem;
+  font-weight: 700;
   line-height: 1;
-  color: #eafff5;
-  text-shadow:
-    0 0 12px var(--verde-glow),
-    0 0 30px var(--verde-glow),
-    0 0 60px rgba(31, 227, 154, 0.35);
+  color: var(--texto-claro);
+  letter-spacing: -2px;
+  text-shadow: 0 0 40px rgba(74, 222, 128, 0.18);
 }
 
 /* ===== CENTRO ===== */
@@ -90,33 +94,32 @@ body::before {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 32px 24px 36px;
+  padding: 26px 24px 28px;
   text-align: center;
 }
 
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--verde);
-  font-family: "Russo One", sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: 2px;
-  text-shadow: 0 0 8px var(--verde-glow);
+  gap: 8px;
+  color: var(--verde-suave);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 2.5px;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--verde);
-  box-shadow: 0 0 10px var(--verde), 0 0 20px var(--verde-glow);
-  animation: pulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--verde-glow);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.85); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 .motorista-bloco {
@@ -127,73 +130,63 @@ body::before {
 }
 
 .rotulo {
-  color: var(--verde);
-  font-family: "Russo One", sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: 5px;
-  text-shadow: 0 0 8px var(--verde-glow);
+  color: var(--verde-suave);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 4px;
 }
 
 .motorista-nome {
-  font-family: "Russo One", sans-serif;
+  font-size: clamp(2rem, 4.8vw, 4rem);
   font-weight: 700;
-  font-size: clamp(3.5rem, 9vw, 8rem);
   line-height: 1;
-  letter-spacing: 4px;
-  background: linear-gradient(180deg, #ffffff 0%, #cfeee0 45%, #a9d8c5 55%, #ffffff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow:
-    0 0 30px rgba(255, 255, 255, 0.35),
-    0 0 60px rgba(31, 227, 154, 0.25);
-  filter: drop-shadow(0 4px 18px rgba(31, 227, 154, 0.25));
+  letter-spacing: -1px;
+  color: var(--texto-claro);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
 }
 
 .placa {
-  color: var(--verde);
-  font-family: "Russo One", sans-serif;
-  font-size: 2.4rem;
-  letter-spacing: 6px;
-  text-shadow: 0 0 10px var(--verde-glow), 0 0 22px var(--verde-glow);
+  color: var(--verde-suave);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 4px;
 }
 
 .veiculo-bloco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .veiculo-nome {
-  font-family: "Russo One", sans-serif;
-  font-size: 2.2rem;
-  letter-spacing: 4px;
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--texto-claro);
 }
 
 .veiculo-tipo {
-  font-family: "Russo One", sans-serif;
-  color: #ffd9d9;
-  font-size: 0.95rem;
-  letter-spacing: 4px;
-  text-shadow: 0 0 8px rgba(255, 120, 120, 0.4);
+  color: var(--texto-suave);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 3px;
 }
 
 /* ===== HISTÓRICO ===== */
 .historico {
-  border: 1.5px solid var(--verde-borda);
-  border-radius: 22px;
-  background: var(--bg-card);
-  backdrop-filter: blur(6px);
-  padding: 18px 16px 18px 18px;
+  border: 1px solid var(--vidro-borda);
+  border-radius: 20px;
+  background: var(--vidro);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  padding: 16px 12px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   box-shadow:
-    inset 0 0 60px rgba(31, 227, 154, 0.06),
-    0 0 30px rgba(0, 0, 0, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -201,75 +194,74 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-right: 4px;
 }
 
 .historico-header h2 {
-  font-family: "Russo One", sans-serif;
-  color: #eafff5;
-  font-size: 1.05rem;
-  letter-spacing: 4px;
-  font-weight: 400;
+  color: var(--texto-claro);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 3px;
 }
 
 .edit-btn {
   background: transparent;
   border: none;
-  color: var(--verde);
+  color: var(--texto-suave);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px;
   border-radius: 6px;
-  transition: background 0.2s;
+  transition: color 0.2s, background 0.2s;
 }
 
 .edit-btn:hover {
-  background: rgba(31, 227, 154, 0.1);
+  color: var(--verde);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .historico-lista {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 4px;
   flex: 1;
 }
 
 .historico-lista::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 .historico-lista::-webkit-scrollbar-track {
-  background: rgba(31, 227, 154, 0.06);
-  border-radius: 4px;
+  background: transparent;
 }
 .historico-lista::-webkit-scrollbar-thumb {
-  background: rgba(31, 227, 154, 0.4);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 .historico-item {
-  border: 1.2px solid var(--verde-borda);
-  border-radius: 16px;
-  padding: 12px 14px;
-  background: rgba(8, 22, 36, 0.45);
-  box-shadow: inset 0 0 20px rgba(31, 227, 154, 0.05);
+  border: 1px solid var(--vidro-borda);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .item-doca {
-  font-family: "Russo One", sans-serif;
-  color: #eafff5;
-  font-size: 1rem;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
+  color: var(--texto-claro);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
 }
 
 .item-info {
-  font-family: "Russo One", sans-serif;
-  color: #c8e6da;
-  font-size: 0.78rem;
-  letter-spacing: 1.5px;
+  color: var(--texto-suave);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.8px;
   line-height: 1.35;
 }

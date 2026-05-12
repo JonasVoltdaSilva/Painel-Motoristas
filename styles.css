@@ -6,12 +6,14 @@
 
 :root {
   --verde:        #1fe39a;
+  --verde-neon:   #2effb3;
   --verde-soft:   rgba(31, 227, 154, 0.85);
-  --verde-glow:   rgba(31, 227, 154, 0.40);
-  --verde-borda:  rgba(31, 227, 154, 0.30);
-  --branco:       rgba(255, 255, 255, 0.95);
+  --verde-glow:   rgba(31, 227, 154, 0.45);
+  --verde-borda:  rgba(46, 255, 179, 0.35);
+  --verde-borda2: rgba(46, 255, 179, 0.12);
+  --branco:       rgba(255, 255, 255, 0.96);
   --branco-suave: rgba(255, 255, 255, 0.55);
-  --bg:           #02060e;
+  --bg:           #03060c;
 }
 
 html, body {
@@ -24,50 +26,92 @@ html, body {
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-transform: uppercase;
 }
 
-/* ────────── FUNDO: MANCHAS GRANDES VERDE/AZUL (IGUAL FOTO) ────────── */
+/* ────────── FUNDO: NÉVOA LUMINOSA VERDE-AZULADA ────────── */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -2;
   background:
-    /* aura verde principal (esquerda-baixo) */
-    radial-gradient(ellipse 70% 80% at 20% 70%, rgba(31, 227, 154, 0.55) 0%, transparent 60%),
-    /* aura azul (direita-topo) */
-    radial-gradient(ellipse 65% 75% at 80% 25%, rgba(35, 80, 220, 0.55) 0%, transparent 60%),
-    /* aura verde inferior */
-    radial-gradient(ellipse 55% 50% at 50% 110%, rgba(31, 227, 154, 0.35) 0%, transparent 60%),
+    /* aura verde grande na esquerda */
+    radial-gradient(ellipse 75% 90% at 15% 65%, rgba(31, 227, 154, 0.45) 0%, transparent 60%),
+    /* aura azul grande na direita */
+    radial-gradient(ellipse 70% 80% at 85% 30%, rgba(30, 80, 220, 0.45) 0%, transparent 60%),
+    /* aura verde inferior central */
+    radial-gradient(ellipse 60% 55% at 50% 105%, rgba(31, 227, 154, 0.35) 0%, transparent 60%),
     /* aura azul-verde no topo */
-    radial-gradient(ellipse 50% 40% at 50% -10%, rgba(40, 100, 180, 0.40) 0%, transparent 60%),
-    /* base escura */
-    linear-gradient(165deg, #020610 0%, #03070e 50%, #02060c 100%);
+    radial-gradient(ellipse 55% 45% at 50% -8%, rgba(40, 120, 200, 0.32) 0%, transparent 60%),
+    /* base preta com leve tom azulado */
+    linear-gradient(165deg, #02050b 0%, #03060d 50%, #02040a 100%);
+  filter: saturate(1.1);
+}
+
+/* ────────── RUÍDO DIGITAL (granulação) ────────── */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 /* ────────── GRID ────────── */
 .painel {
   display: grid;
-  grid-template-columns: 220px 1fr 240px;
-  gap: 16px;
-  padding: 20px;
+  grid-template-columns: 230px 1fr 250px;
+  gap: 18px;
+  padding: 22px;
   height: 100vh;
   width: 100vw;
 }
 
-/* ────────── CARTÕES (vidro médio ~50%) ────────── */
+/* ────────── CARTÕES (vidro escuro + frame neon + gradiente interno) ────────── */
 .card,
 .historico {
   position: relative;
-  border-radius: 22px;
-  background: rgba(10, 20, 35, 0.50);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1.5px solid var(--verde-borda);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(20, 40, 55, 0.55) 0%,
+      rgba(8, 18, 30, 0.55) 100%
+    );
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--verde-borda);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 10px 40px rgba(0, 0, 0, 0.35);
+    /* frame iluminado externo */
+    0 0 0 1px var(--verde-borda2),
+    0 0 24px rgba(31, 227, 154, 0.10),
+    /* sombra de flutuação */
+    0 16px 48px rgba(0, 0, 0, 0.45),
+    /* reflexo interno suave */
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 60px rgba(31, 227, 154, 0.04);
   overflow: hidden;
+}
+
+/* reflexo de luz no topo (efeito vidro escuro) */
+.card::before,
+.historico::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 /* ────────── DOCA ────────── */
@@ -77,26 +121,28 @@ body::before {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .doca-label {
-  font-size: 0.85rem;
+  position: relative;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 7px;
+  letter-spacing: 8px;
   color: var(--verde);
-  text-shadow: 0 0 12px var(--verde-glow);
+  text-shadow: 0 0 14px var(--verde-glow);
 }
 
 .doca-numero {
-  font-size: 7rem;
-  font-weight: 800;
+  position: relative;
+  font-size: 7.5rem;
+  font-weight: 700;
   line-height: 1;
-  color: var(--branco);
+  color: #fff;
   letter-spacing: -3px;
   text-shadow:
-    0 0 24px rgba(31, 227, 154, 0.35),
-    0 0 60px rgba(31, 227, 154, 0.18);
+    0 0 24px rgba(31, 227, 154, 0.45),
+    0 0 48px rgba(31, 227, 154, 0.22);
 }
 
 /* ────────── CENTRO ────────── */
@@ -105,17 +151,18 @@ body::before {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 30px 24px 34px;
+  padding: 34px 26px 38px;
   text-align: center;
 }
 
 .status {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.8rem;
+  gap: 11px;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 2.5px;
+  letter-spacing: 3px;
   color: var(--verde);
   text-shadow: 0 0 10px var(--verde-glow);
 }
@@ -124,29 +171,30 @@ body::before {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--verde);
+  background: var(--verde-neon);
   box-shadow:
-    0 0 8px var(--verde),
+    0 0 8px var(--verde-neon),
     0 0 18px var(--verde-glow);
   animation: blink 2.2s ease-in-out infinite;
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.40; }
+  50%       { opacity: 0.4; }
 }
 
 .motorista-bloco {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .rotulo {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 6px;
+  letter-spacing: 7px;
   color: var(--verde);
   text-shadow: 0 0 10px var(--verde-glow);
 }
@@ -155,46 +203,48 @@ body::before {
   font-size: clamp(2.6rem, 5.5vw, 5.5rem);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   background: linear-gradient(
     180deg,
     #ffffff   0%,
-    #e6fff5 35%,
-    #b5edd0 55%,
+    #e8fff5 38%,
+    #bdf2d6 56%,
     #ffffff 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 4px 24px rgba(31, 227, 154, 0.22));
+  filter: drop-shadow(0 4px 28px rgba(31, 227, 154, 0.25));
 }
 
 .placa {
   font-size: 1.5rem;
   font-weight: 600;
-  letter-spacing: 7px;
+  letter-spacing: 8px;
   color: var(--verde);
   text-shadow: 0 0 14px var(--verde-glow);
 }
 
 .veiculo-bloco {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .veiculo-nome {
   font-size: 1.6rem;
   font-weight: 700;
-  letter-spacing: 4px;
-  color: var(--branco);
+  letter-spacing: 5px;
+  color: #fff;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
 }
 
 .veiculo-tipo {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   color: var(--branco-suave);
 }
 
@@ -207,6 +257,7 @@ body::before {
 }
 
 .historico-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -214,10 +265,10 @@ body::before {
 }
 
 .historico-header h2 {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 4px;
-  color: var(--branco);
+  letter-spacing: 5px;
+  color: #fff;
 }
 
 .edit-btn {
@@ -242,6 +293,7 @@ body::before {
   overflow-y: auto;
   padding-right: 4px;
   flex: 1;
+  position: relative;
 }
 
 .historico-lista::-webkit-scrollbar       { width: 3px; }
@@ -252,25 +304,32 @@ body::before {
 }
 
 .historico-item {
+  position: relative;
   border-radius: 14px;
-  padding: 11px 13px;
-  background: rgba(10, 20, 35, 0.50);
-  border: 1px solid var(--verde-borda);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 11px 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 40, 55, 0.45) 0%,
+    rgba(8, 18, 30, 0.45) 100%
+  );
+  border: 1px solid var(--verde-borda2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .item-doca {
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  color: var(--branco);
-  margin-bottom: 3px;
+  letter-spacing: 0.8px;
+  color: #fff;
+  margin-bottom: 4px;
 }
 
 .item-info {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 500;
-  letter-spacing: 0.6px;
+  letter-spacing: 1px;
   line-height: 1.4;
   color: var(--branco-suave);
 }

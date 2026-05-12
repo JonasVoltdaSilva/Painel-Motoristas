@@ -92,15 +92,15 @@ body::after {
 .historico {
   position: relative;
   border-radius: 22px;
-  /* vidro mais OPACO (maior alpha) */
+  /* vidro fosco — opaco o suficiente pra ler, mas deixa o bokeh aparecer */
   background:
     linear-gradient(
       145deg,
-      rgba(18, 28, 36, 0.88) 0%,
-      rgba(10, 18, 26, 0.82) 100%
+      rgba(20, 32, 42, 0.55) 0%,
+      rgba(10, 18, 26, 0.48) 100%
     );
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
   border: 1px solid var(--verde-50);
   box-shadow:
     inset 0 0 22px rgba(62, 242, 179, 0.08),
@@ -329,8 +329,8 @@ body::after {
   padding: 12px 14px;
   background: linear-gradient(
     145deg,
-    rgba(28, 40, 50, 0.85) 0%,
-    rgba(18, 28, 36, 0.80) 100%
+    rgba(28, 40, 50, 0.55) 0%,
+    rgba(18, 28, 36, 0.48) 100%
   );
   border: 1px solid rgba(62, 242, 179, 0.18);
   box-shadow:

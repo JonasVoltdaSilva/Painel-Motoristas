@@ -5,14 +5,13 @@
 }
 
 :root {
-  --verde:        #2bf0a0;
-  --verde-soft:   rgba(43, 240, 160, 0.85);
-  --verde-dim:    rgba(43, 240, 160, 0.55);
-  --verde-glow:   rgba(43, 240, 160, 0.25);
-  --verde-borda:  rgba(120, 255, 200, 0.18);
+  --verde:        #1fe39a;
+  --verde-soft:   rgba(31, 227, 154, 0.85);
+  --verde-glow:   rgba(31, 227, 154, 0.40);
+  --verde-borda:  rgba(31, 227, 154, 0.30);
   --branco:       rgba(255, 255, 255, 0.95);
   --branco-suave: rgba(255, 255, 255, 0.55);
-  --bg:           #03060c;
+  --bg:           #02060e;
 }
 
 html, body {
@@ -21,43 +20,29 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--branco);
-  font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ────────── FUNDO COM BOKEH VERDE DIFUSO ────────── */
+/* ────────── FUNDO: MANCHAS GRANDES VERDE/AZUL (IGUAL FOTO) ────────── */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -1;
   background:
-    radial-gradient(circle at 12% 18%, rgba(43, 240, 160, 0.35) 0%, transparent 8%),
-    radial-gradient(circle at 88% 22%, rgba(43, 240, 160, 0.28) 0%, transparent 7%),
-    radial-gradient(circle at 25% 75%, rgba(43, 240, 160, 0.40) 0%, transparent 10%),
-    radial-gradient(circle at 72% 82%, rgba(43, 240, 160, 0.32) 0%, transparent 9%),
-    radial-gradient(circle at 50% 35%, rgba(43, 240, 160, 0.22) 0%, transparent 6%),
-    radial-gradient(circle at 8% 55%, rgba(43, 240, 160, 0.30) 0%, transparent 8%),
-    radial-gradient(circle at 95% 60%, rgba(43, 240, 160, 0.25) 0%, transparent 7%),
-    radial-gradient(circle at 40% 12%, rgba(43, 240, 160, 0.20) 0%, transparent 6%),
-    radial-gradient(circle at 60% 95%, rgba(43, 240, 160, 0.28) 0%, transparent 8%),
-    radial-gradient(circle at 18% 38%, rgba(43, 240, 160, 0.18) 0%, transparent 5%),
-    radial-gradient(circle at 80% 48%, rgba(43, 240, 160, 0.22) 0%, transparent 6%),
-    radial-gradient(circle at 33% 50%, rgba(43, 240, 160, 0.15) 0%, transparent 5%);
-  filter: blur(40px);
-}
-
-/* camada de gradiente colorido base */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -3;
-  background:
-    radial-gradient(ellipse 70% 60% at 30% 70%, rgba(20, 100, 70, 0.40) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 70% at 75% 30%, rgba(25, 60, 130, 0.45) 0%, transparent 65%),
-    linear-gradient(170deg, #02060d 0%, #030810 100%);
+    /* aura verde principal (esquerda-baixo) */
+    radial-gradient(ellipse 70% 80% at 20% 70%, rgba(31, 227, 154, 0.55) 0%, transparent 60%),
+    /* aura azul (direita-topo) */
+    radial-gradient(ellipse 65% 75% at 80% 25%, rgba(35, 80, 220, 0.55) 0%, transparent 60%),
+    /* aura verde inferior */
+    radial-gradient(ellipse 55% 50% at 50% 110%, rgba(31, 227, 154, 0.35) 0%, transparent 60%),
+    /* aura azul-verde no topo */
+    radial-gradient(ellipse 50% 40% at 50% -10%, rgba(40, 100, 180, 0.40) 0%, transparent 60%),
+    /* base escura */
+    linear-gradient(165deg, #020610 0%, #03070e 50%, #02060c 100%);
 }
 
 /* ────────── GRID ────────── */
@@ -70,43 +55,19 @@ body::after {
   width: 100vw;
 }
 
-/* ────────── CARTÃO CRISTAL ────────── */
+/* ────────── CARTÕES (vidro médio ~50%) ────────── */
 .card,
 .historico {
   position: relative;
   border-radius: 22px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.045) 0%,
-    rgba(255, 255, 255, 0.015) 100%
-  );
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid var(--verde-borda);
+  background: rgba(10, 20, 35, 0.50);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1.5px solid var(--verde-borda);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(43, 240, 160, 0.05),
-    0 12px 40px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(43, 240, 160, 0.04);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
-}
-
-/* reflexo interno no topo (efeito vidro) */
-.card::before,
-.historico::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    transparent 100%
-  );
-  pointer-events: none;
-  border-radius: 22px 22px 0 0;
 }
 
 /* ────────── DOCA ────────── */
@@ -116,28 +77,26 @@ body::after {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .doca-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 7px;
-  color: var(--verde-soft);
+  color: var(--verde);
   text-shadow: 0 0 12px var(--verde-glow);
-  z-index: 1;
 }
 
 .doca-numero {
-  font-size: 8rem;
-  font-weight: 700;
+  font-size: 7rem;
+  font-weight: 800;
   line-height: 1;
   color: var(--branco);
-  letter-spacing: -2px;
+  letter-spacing: -3px;
   text-shadow:
-    0 0 24px rgba(43, 240, 160, 0.40),
-    0 0 60px rgba(43, 240, 160, 0.20);
-  z-index: 1;
+    0 0 24px rgba(31, 227, 154, 0.35),
+    0 0 60px rgba(31, 227, 154, 0.18);
 }
 
 /* ────────── CENTRO ────────── */
@@ -146,7 +105,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 32px 24px 36px;
+  padding: 30px 24px 34px;
   text-align: center;
 }
 
@@ -154,16 +113,16 @@ body::after {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 2.5px;
-  color: var(--verde-soft);
-  z-index: 1;
+  color: var(--verde);
+  text-shadow: 0 0 10px var(--verde-glow);
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--verde);
   box-shadow:
@@ -174,7 +133,7 @@ body::after {
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.35; }
+  50%       { opacity: 0.40; }
 }
 
 .motorista-bloco {
@@ -182,53 +141,51 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  z-index: 1;
 }
 
 .rotulo {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 6px;
-  color: var(--verde-soft);
+  color: var(--verde);
   text-shadow: 0 0 10px var(--verde-glow);
 }
 
 .motorista-nome {
-  font-size: clamp(2.5rem, 5.5vw, 5.5rem);
+  font-size: clamp(2.6rem, 5.5vw, 5.5rem);
   font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: 2px;
+  line-height: 1;
+  letter-spacing: 1px;
   background: linear-gradient(
     180deg,
     #ffffff   0%,
-    #e8fff4 35%,
-    #b8f0d4 55%,
+    #e6fff5 35%,
+    #b5edd0 55%,
     #ffffff 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 4px 24px rgba(43, 240, 160, 0.20));
+  filter: drop-shadow(0 4px 24px rgba(31, 227, 154, 0.22));
 }
 
 .placa {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 7px;
-  color: var(--verde-soft);
-  text-shadow: 0 0 12px var(--verde-glow);
+  color: var(--verde);
+  text-shadow: 0 0 14px var(--verde-glow);
 }
 
 .veiculo-bloco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  z-index: 1;
+  gap: 5px;
 }
 
 .veiculo-nome {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 4px;
   color: var(--branco);
@@ -254,11 +211,10 @@ body::after {
   align-items: center;
   justify-content: space-between;
   padding-right: 4px;
-  z-index: 1;
 }
 
 .historico-header h2 {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 4px;
   color: var(--branco);
@@ -272,10 +228,10 @@ body::after {
   display: flex;
   padding: 4px;
   border-radius: 6px;
-  transition: opacity 0.2s, background 0.2s;
+  transition: background 0.2s;
 }
 .edit-btn:hover {
-  background: rgba(43, 240, 160, 0.08);
+  background: rgba(31, 227, 154, 0.10);
 }
 
 .historico-lista {
@@ -286,41 +242,35 @@ body::after {
   overflow-y: auto;
   padding-right: 4px;
   flex: 1;
-  z-index: 1;
 }
 
 .historico-lista::-webkit-scrollbar       { width: 3px; }
 .historico-lista::-webkit-scrollbar-track { background: transparent; }
 .historico-lista::-webkit-scrollbar-thumb {
-  background: rgba(43, 240, 160, 0.25);
+  background: rgba(31, 227, 154, 0.30);
   border-radius: 4px;
 }
 
 .historico-item {
-  position: relative;
   border-radius: 14px;
   padding: 11px 13px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.012) 100%
-  );
-  border: 1px solid rgba(120, 255, 200, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: rgba(10, 20, 35, 0.50);
+  border: 1px solid var(--verde-borda);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .item-doca {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   color: var(--branco);
   margin-bottom: 3px;
 }
 
 .item-info {
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  letter-spacing: 0.7px;
-  line-height: 1.35;
+  letter-spacing: 0.6px;
+  line-height: 1.4;
   color: var(--branco-suave);
 }

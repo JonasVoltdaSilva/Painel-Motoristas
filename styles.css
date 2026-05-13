@@ -79,9 +79,9 @@ body::after {
    - Adapta automaticamente a cada aspect ratio                          */
 .painel {
   display: grid;
-  grid-template-columns: 17vw 1fr 19vw;
-  gap: 1.4vmin;
-  padding: 1.6vmin;
+  grid-template-columns: 28vw 1fr 30vw;
+  gap: 0.8vmin;
+  padding: 0.8vmin;
   width: 100vw;
   height: 100vh;
 }
@@ -370,25 +370,25 @@ body::after {
    Detecta o aspect ratio real e ajusta colunas/espaços.
    ════════════════════════════════════════════════════════════════ */
 
-/* ULTRAWIDE (21:9, 32:9) — colunas laterais mais estreitas, centro destacado */
+/* ULTRAWIDE (21:9, 32:9) — laterais maiores ainda, ocupando mais da tela */
 @media (min-aspect-ratio: 2/1) {
-  .painel { grid-template-columns: 14vw 1fr 16vw; }
+  .painel { grid-template-columns: 26vw 1fr 28vw; }
   .doca-numero    { font-size: 20vmin; }
   .motorista-nome { font-size: 12vmin; }
 }
 
 /* WIDE LANDSCAPE PADRÃO (16:9, 16:10) — default, sem override */
 
-/* STANDARD LANDSCAPE (3:2, 4:3) — colunas mais largas pra compensar */
+/* STANDARD LANDSCAPE (3:2, 4:3) — laterais bem largas */
 @media (orientation: landscape) and (max-aspect-ratio: 3/2) {
-  .painel { grid-template-columns: 20vw 1fr 22vw; }
+  .painel { grid-template-columns: 31vw 1fr 33vw; }
   .doca-numero    { font-size: 19vmin; }
   .motorista-nome { font-size: 11vmin; }
 }
 
-/* QUASE QUADRADO (1:1) — layout mais compacto */
+/* QUASE QUADRADO (1:1) — laterais quase iguais ao centro */
 @media (orientation: landscape) and (max-aspect-ratio: 6/5) {
-  .painel { grid-template-columns: 22vw 1fr 24vw; }
+  .painel { grid-template-columns: 33vw 1fr 35vw; }
   .doca-numero    { font-size: 16vmin; }
   .motorista-nome { font-size: 9vmin; }
 }

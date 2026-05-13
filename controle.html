@@ -21,6 +21,44 @@
       <a href="index.html" class="ctrl-link">&larr; Ver painel</a>
     </header>
 
+    <!-- SYNC ENTRE DISPOSITIVOS -->
+    <section class="ctrl-card ctrl-sync">
+      <div class="ctrl-card-header">
+        <h2>
+          <span class="sync-indicador" id="sync-led"></span>
+          Sincronização entre dispositivos
+        </h2>
+        <button class="btn btn-sm btn-ghost" id="toggle-ajuda" type="button">Como conectar?</button>
+      </div>
+
+      <p class="sync-desc" id="sync-desc">
+        Sem nuvem configurada — alterações ficam apenas neste navegador.
+      </p>
+
+      <div class="sync-form">
+        <label class="ctrl-field ctrl-field-wide">
+          <span>URL do Firebase Realtime Database</span>
+          <input type="url" id="in-firebase" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" />
+        </label>
+        <div class="sync-acoes">
+          <button class="btn" id="conectar-nuvem" type="button">Conectar</button>
+          <button class="btn btn-ghost" id="desconectar-nuvem" type="button">Desconectar</button>
+          <span class="sync-resultado" id="sync-resultado"></span>
+        </div>
+      </div>
+
+      <details class="ajuda" id="ajuda-bloco">
+        <summary>Setup Firebase em 4 passos (pelo celular, gratuito)</summary>
+        <ol>
+          <li>Abra <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> e clique em <b>Adicionar projeto</b>. Dê um nome (ex: <i>painel-motoristas</i>) e pule o Google Analytics.</li>
+          <li>No menu lateral: <b>Build → Realtime Database → Criar banco de dados</b>. Escolha qualquer local. Selecione <b>"Iniciar em modo de teste"</b>.</li>
+          <li>Na tela do banco, copie a URL no topo (algo como <code>https://painel-motoristas-xxx-default-rtdb.firebaseio.com</code>).</li>
+          <li>Cole acima e clique em <b>Conectar</b>. Pronto — agora qualquer dispositivo que abrir o painel e colar esta mesma URL fica sincronizado em tempo real.</li>
+        </ol>
+        <p class="aviso">⚠️ Em modo de teste, qualquer pessoa com a URL pode editar. Pra produção, configure regras de auth no Firebase.</p>
+      </details>
+    </section>
+
     <!-- ATUAL -->
     <section class="ctrl-card">
       <h2>Motorista atual</h2>
@@ -195,6 +233,59 @@
       sinalizarSalvo();
     });
 
+    // ────────── SYNC (NUVEM) ──────────
+    const ledEl       = document.getElementById("sync-led");
+    const descEl      = document.getElementById("sync-desc");
+    const inputUrl    = document.getElementById("in-firebase");
+    const resEl       = document.getElementById("sync-resultado");
+    const ajudaBloco  = document.getElementById("ajuda-bloco");
+
+    function refreshLed() {
+      const url = getNuvemUrl();
+      if (url) {
+        ledEl.className = "sync-indicador on";
+        descEl.innerHTML = `Conectado: <code>${url.replace(/^https?:\/\//, "")}</code>`;
+        inputUrl.value = url;
+      } else {
+        ledEl.className = "sync-indicador off";
+        descEl.textContent = "Sem nuvem configurada — alterações ficam apenas neste navegador.";
+      }
+    }
+
+    document.getElementById("conectar-nuvem").addEventListener("click", async () => {
+      const url = inputUrl.value.trim();
+      if (!url) { resEl.textContent = "Informe a URL."; resEl.className = "sync-resultado erro"; return; }
+      if (!/^https?:\/\//.test(url)) { resEl.textContent = "URL precisa começar com https://"; resEl.className = "sync-resultado erro"; return; }
+      setNuvemUrl(url);
+      resEl.textContent = "Testando…";
+      resEl.className = "sync-resultado";
+      const teste = await testarNuvem();
+      if (teste.ok) {
+        resEl.textContent = "✓ Conectado e funcionando";
+        resEl.className = "sync-resultado ok";
+        await salvarNuvem(estado);
+        iniciarPolling((novo) => { estado = novo; preencher(); });
+        refreshLed();
+      } else {
+        resEl.textContent = "✗ Falhou: " + teste.erro;
+        resEl.className = "sync-resultado erro";
+        setNuvemUrl("");
+        refreshLed();
+      }
+    });
+
+    document.getElementById("desconectar-nuvem").addEventListener("click", () => {
+      pararPolling();
+      setNuvemUrl("");
+      resEl.textContent = "Desconectado";
+      resEl.className = "sync-resultado";
+      refreshLed();
+    });
+
+    document.getElementById("toggle-ajuda").addEventListener("click", () => {
+      ajudaBloco.open = !ajudaBloco.open;
+    });
+
     // ────────── INDICADOR DE SALVO ──────────
     let timer;
     function sinalizarSalvo() {
@@ -205,16 +296,16 @@
       timer = setTimeout(() => {
         el.textContent = "Salvo ✓";
         el.classList.remove("salvando");
-      }, 250);
+      }, 350);
     }
 
-    // ────────── SYNC ──────────
+    // ────────── INIT ──────────
+    refreshLed();
+    preencher();
     inscrever((novo) => {
       estado = novo;
       preencher();
     });
-
-    preencher();
   </script>
 </body>
 </html>

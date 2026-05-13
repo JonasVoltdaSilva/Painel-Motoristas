@@ -15,25 +15,25 @@
     <!-- DOCA -->
     <section class="card doca">
       <div class="doca-label">DOCA</div>
-      <div class="doca-numero">01</div>
+      <div class="doca-numero" id="campo-doca">01</div>
     </section>
 
     <!-- CENTRO -->
     <section class="card centro">
       <div class="status">
         <span class="status-dot"></span>
-        <span>CARREGAMENTO FINALIZADO</span>
+        <span id="campo-status">CARREGAMENTO FINALIZADO</span>
       </div>
 
       <div class="motorista-bloco">
         <p class="rotulo">MOTORISTA</p>
-        <h1 class="motorista-nome">ARIANA GRANDE</h1>
-        <p class="placa">6969-ARI</p>
+        <h1 class="motorista-nome" id="campo-motorista">ARIANA GRANDE</h1>
+        <p class="placa" id="campo-placa">6969-ARI</p>
       </div>
 
       <div class="veiculo-bloco">
-        <p class="veiculo-nome">POP STAR</p>
-        <p class="veiculo-tipo">CARRETA &middot; PALETIZADA</p>
+        <p class="veiculo-nome" id="campo-veiculo">POP STAR</p>
+        <p class="veiculo-tipo" id="campo-tipo">CARRETA &middot; PALETIZADA</p>
       </div>
     </section>
 
@@ -41,39 +41,39 @@
     <aside class="historico">
       <header class="historico-header">
         <h2>HISTORICO</h2>
-        <button class="edit-btn" aria-label="Editar">
+        <a href="controle.html" class="edit-btn" aria-label="Abrir controle" title="Abrir controle">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        </button>
+        </a>
       </header>
 
-      <ul class="historico-lista">
-        <li class="historico-item">
-          <p class="item-doca">Doca 11</p>
-          <p class="item-info">RENATO NOVAES – AGUARDANDO MOTORISTA</p>
-        </li>
-        <li class="historico-item">
-          <p class="item-doca">Doca 02</p>
-          <p class="item-info">LANA DEL – AGUARDANDO MOTORISTA</p>
-        </li>
-        <li class="historico-item">
-          <p class="item-doca">Doca 11</p>
-          <p class="item-info">RENATO NOVAES – AGUARDANDO MOTORISTA</p>
-        </li>
-        <li class="historico-item">
-          <p class="item-doca">Doca 01</p>
-          <p class="item-info">CARLOS SILVA – CARREGAMENTO</p>
-        </li>
-        <li class="historico-item">
-          <p class="item-doca">Doca 02</p>
-          <p class="item-info">ANA SOUZA – CARREGAMENTO</p>
-        </li>
-        <li class="historico-item">
-          <p class="item-doca">Doca 07</p>
-          <p class="item-info">MARCOS OLIVEIRA – CARREGAMENTO</p>
-        </li>
-      </ul>
+      <ul class="historico-lista" id="campo-historico"></ul>
     </aside>
 
   </main>
+
+  <script src="script.js"></script>
+  <script>
+    function render(estado) {
+      document.getElementById("campo-doca").textContent      = estado.doca;
+      document.getElementById("campo-status").textContent    = estado.status;
+      document.getElementById("campo-motorista").textContent = estado.motorista;
+      document.getElementById("campo-placa").textContent     = estado.placa;
+      document.getElementById("campo-veiculo").textContent   = estado.veiculo;
+
+      const sufixo = estado.paletizada ? " · PALETIZADA" : " · NÃO PALETIZADA";
+      document.getElementById("campo-tipo").textContent = estado.tipo + sufixo;
+
+      const lista = document.getElementById("campo-historico");
+      lista.innerHTML = estado.historico.map((h) => `
+        <li class="historico-item">
+          <p class="item-doca">Doca ${h.doca}</p>
+          <p class="item-info">${h.motorista} – ${h.status}</p>
+        </li>
+      `).join("");
+    }
+
+    render(carregar());
+    inscrever(render);
+  </script>
 </body>
 </html>

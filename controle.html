@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle &middot; Painel de Motoristas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="controle.css" />
+</head>
+<body class="ctrl-body">
+
+  <main class="ctrl-wrap">
+    <header class="ctrl-header">
+      <div>
+        <h1>CONTROLE</h1>
+        <p>Edite os campos &mdash; o painel atualiza ao vivo</p>
+      </div>
+      <a href="index.html" class="ctrl-link">&larr; Ver painel</a>
+    </header>
+
+    <!-- ATUAL -->
+    <section class="ctrl-card">
+      <h2>Motorista atual</h2>
+
+      <div class="ctrl-grid">
+        <label class="ctrl-field ctrl-field-sm">
+          <span>Doca</span>
+          <input type="text" id="in-doca" maxlength="3" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Status</span>
+          <select id="in-status">
+            <option>AGUARDANDO MOTORISTA</option>
+            <option>CARREGAMENTO</option>
+            <option>CARREGAMENTO FINALIZADO</option>
+            <option>DESCARREGAMENTO</option>
+            <option>DESCARREGAMENTO FINALIZADO</option>
+            <option>EM CONFERÊNCIA</option>
+            <option>LIBERADO</option>
+          </select>
+        </label>
+
+        <label class="ctrl-field ctrl-field-wide">
+          <span>Nome do motorista</span>
+          <input type="text" id="in-motorista" placeholder="Ex: ARIANA GRANDE" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Placa</span>
+          <input type="text" id="in-placa" placeholder="Ex: 6969-ARI" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Veículo (nome / código)</span>
+          <input type="text" id="in-veiculo" placeholder="Ex: POP STAR" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Tipo</span>
+          <select id="in-tipo">
+            <option>CARRETA</option>
+            <option>TRUCK</option>
+            <option>VAN</option>
+            <option>BITRUCK</option>
+            <option>RODOTREM</option>
+            <option>VUC</option>
+          </select>
+        </label>
+
+        <label class="ctrl-field ctrl-switch">
+          <span>Paletizada?</span>
+          <div class="switch">
+            <input type="checkbox" id="in-paletizada" />
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- HISTÓRICO -->
+    <section class="ctrl-card">
+      <div class="ctrl-card-header">
+        <h2>Histórico</h2>
+        <button class="btn btn-sm" id="add-historico" type="button">+ Adicionar</button>
+      </div>
+      <div id="hist-lista" class="hist-lista"></div>
+    </section>
+
+    <div class="ctrl-acoes">
+      <button class="btn btn-ghost" id="resetar" type="button">Resetar tudo</button>
+      <span class="ctrl-status" id="ctrl-status">Salvo automaticamente</span>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    let estado = carregar();
+
+    // ────────── BIND DOS CAMPOS ──────────
+    const campos = {
+      "in-doca":       "doca",
+      "in-status":     "status",
+      "in-motorista":  "motorista",
+      "in-placa":      "placa",
+      "in-veiculo":    "veiculo",
+      "in-tipo":       "tipo",
+    };
+
+    function preencher() {
+      Object.entries(campos).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = estado[key] || "";
+      });
+      document.getElementById("in-paletizada").checked = !!estado.paletizada;
+      renderHistorico();
+    }
+
+    Object.entries(campos).forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        let valor = el.value;
+        if (key === "motorista" || key === "veiculo" || key === "placa") {
+          valor = valor.toUpperCase();
+          el.value = valor;
+        }
+        estado[key] = valor;
+        salvar(estado);
+        sinalizarSalvo();
+      });
+    });
+
+    document.getElementById("in-paletizada").addEventListener("change", (e) => {
+      estado.paletizada = e.target.checked;
+      salvar(estado);
+      sinalizarSalvo();
+    });
+
+    // ────────── HISTÓRICO ──────────
+    function renderHistorico() {
+      const cont = document.getElementById("hist-lista");
+      cont.innerHTML = estado.historico.map((h, i) => `
+        <div class="hist-item">
+          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca}"      placeholder="01" />
+          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista}" placeholder="NOME" />
+          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status}"    placeholder="STATUS" />
+          <button class="hist-rm" data-i="${i}" type="button" title="Remover">×</button>
+        </div>
+      `).join("");
+
+      cont.querySelectorAll("input").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const i = +inp.dataset.i;
+          const k = inp.dataset.k;
+          let v = inp.value;
+          if (k === "motorista" || k === "status") {
+            v = v.toUpperCase();
+            inp.value = v;
+          }
+          estado.historico[i][k] = v;
+          salvar(estado);
+          sinalizarSalvo();
+        });
+      });
+
+      cont.querySelectorAll(".hist-rm").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const i = +btn.dataset.i;
+          estado.historico.splice(i, 1);
+          salvar(estado);
+          renderHistorico();
+          sinalizarSalvo();
+        });
+      });
+    }
+
+    document.getElementById("add-historico").addEventListener("click", () => {
+      estado.historico.unshift({ doca: "", motorista: "", status: "AGUARDANDO MOTORISTA" });
+      salvar(estado);
+      renderHistorico();
+      sinalizarSalvo();
+    });
+
+    // ────────── RESET ──────────
+    document.getElementById("resetar").addEventListener("click", () => {
+      if (!confirm("Resetar para os valores padrão?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      estado = carregar();
+      salvar(estado);
+      preencher();
+      sinalizarSalvo();
+    });
+
+    // ────────── INDICADOR DE SALVO ──────────
+    let timer;
+    function sinalizarSalvo() {
+      const el = document.getElementById("ctrl-status");
+      el.textContent = "Salvando…";
+      el.classList.add("salvando");
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        el.textContent = "Salvo ✓";
+        el.classList.remove("salvando");
+      }, 250);
+    }
+
+    // ────────── SYNC ──────────
+    inscrever((novo) => {
+      estado = novo;
+      preencher();
+    });
+
+    preencher();
+  </script>
+</body>
+</html>

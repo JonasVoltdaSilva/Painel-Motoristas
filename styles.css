@@ -17,6 +17,8 @@
   --branco-70:  rgba(255, 255, 255, 0.70);
   --branco-60:  rgba(255, 255, 255, 0.60);
   --branco-40:  rgba(255, 255, 255, 0.40);
+
+  --scale: 1;
 }
 
 html, body {
@@ -35,7 +37,6 @@ html, body {
 /* ────────── FUNDO: BOKEH VERDE DIFUSO ────────── */
 body {
   background:
-    /* pontos verdes difusos espalhados (vários tamanhos e posições) */
     radial-gradient(circle 180px at 8% 20%,  rgba(62, 242, 179, 0.45), transparent 70%),
     radial-gradient(circle 240px at 22% 80%, rgba(62, 242, 179, 0.55), transparent 70%),
     radial-gradient(circle 140px at 38% 35%, rgba(62, 242, 179, 0.32), transparent 70%),
@@ -48,13 +49,11 @@ body {
     radial-gradient(circle 150px at 45% 60%, rgba(62, 242, 179, 0.22), transparent 70%),
     radial-gradient(circle 120px at 72% 88%, rgba(62, 242, 179, 0.28), transparent 70%),
     radial-gradient(circle 100px at 30% 12%, rgba(62, 242, 179, 0.20), transparent 70%),
-    /* leve tom azulado em um ponto */
     radial-gradient(circle 300px at 85% 30%, rgba(40, 80, 180, 0.25), transparent 70%),
     var(--bg-base);
   filter: saturate(1.05);
 }
 
-/* camada de blur global no fundo (pra os pontos ficarem difusos) */
 body::before {
   content: "";
   position: fixed;
@@ -65,7 +64,6 @@ body::before {
   pointer-events: none;
 }
 
-/* ruído digital geral */
 body::after {
   content: "";
   position: fixed;
@@ -74,42 +72,49 @@ body::after {
   pointer-events: none;
   opacity: 0.06;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
-/* ────────── GRID ────────── */
+/* ────────── PAINEL: DESIGN BASE 1920x1080 ESCALADO ──────────
+   O painel é desenhado em pixels absolutos numa base 1920x1080
+   e o JavaScript aplica scale() proporcional pra caber em qualquer tela.
+   Isso garante que TODAS as proporções (texto, espaços, cards) ficam
+   exatamente iguais em qualquer resolução — só muda o tamanho.            */
 .painel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 1920px;
+  height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--scale));
+  transform-origin: center center;
+
   display: grid;
-  grid-template-columns: clamp(170px, 16vw, 320px) 1fr clamp(190px, 18vw, 340px);
-  gap: clamp(10px, 1.2vw, 22px);
-  padding: clamp(12px, 1.4vw, 26px);
-  height: 100vh;
-  width: 100vw;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 22px;
+  padding: 26px;
 }
 
-/* ────────── CARDS — VIDRO OPACO TEXTURIZADO ────────── */
+/* ────────── CARDS ────────── */
 .card,
 .historico {
   position: relative;
-  border-radius: 22px;
-  /* vidro fosco — opaco o suficiente pra ler, mas deixa o bokeh aparecer */
-  background:
-    linear-gradient(
-      145deg,
-      rgba(20, 32, 42, 0.55) 0%,
-      rgba(10, 18, 26, 0.48) 100%
-    );
+  border-radius: 26px;
+  background: linear-gradient(
+    145deg,
+    rgba(20, 32, 42, 0.55) 0%,
+    rgba(10, 18, 26, 0.48) 100%
+  );
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid var(--verde-50);
+  border: 1.5px solid var(--verde-50);
   box-shadow:
-    inset 0 0 22px rgba(62, 242, 179, 0.08),
+    inset 0 0 26px rgba(62, 242, 179, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 14px 44px rgba(0, 0, 0, 0.50);
+    0 18px 56px rgba(0, 0, 0, 0.50);
   overflow: hidden;
 }
 
-/* TEXTURA INTERNA do vidro (granulação só no card) */
 .card::before,
 .historico::before {
   content: "";
@@ -118,10 +123,9 @@ body::after {
   pointer-events: none;
   opacity: 0.15;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='t'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23t)'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='t'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23t)'/></svg>");
 }
 
-/* brilho de luz no topo (efeito vidro) */
 .card::after,
 .historico::after {
   content: "";
@@ -129,11 +133,7 @@ body::after {
   top: 0; left: 0; right: 0;
   height: 45%;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 100%);
 }
 
 /* ────────── DOCA ────────── */
@@ -143,30 +143,30 @@ body::after {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .doca-label {
   position: relative;
   z-index: 2;
-  font-size: clamp(0.65rem, 0.85vw, 1.05rem);
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: clamp(5px, 0.6vw, 10px);
+  letter-spacing: 12px;
   color: var(--branco-70);
 }
 
 .doca-numero {
   position: relative;
   z-index: 2;
-  font-size: clamp(4rem, 9vw, 14rem);
+  font-size: 220px;
   font-weight: 700;
   line-height: 1;
   color: var(--branco-100);
-  letter-spacing: -3px;
+  letter-spacing: -6px;
   text-shadow:
-    0 0 30px rgba(62, 242, 179, 0.55),
-    0 0 60px rgba(62, 242, 179, 0.30),
-    0 4px 20px rgba(0, 0, 0, 0.40);
+    0 0 50px rgba(62, 242, 179, 0.55),
+    0 0 100px rgba(62, 242, 179, 0.30),
+    0 8px 30px rgba(0, 0, 0, 0.40);
 }
 
 /* ────────── CENTRO ────────── */
@@ -175,7 +175,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(20px, 2.4vw, 48px) clamp(16px, 2vw, 40px);
+  padding: 52px 40px 60px;
   text-align: center;
 }
 
@@ -184,93 +184,94 @@ body::after {
 .status {
   display: inline-flex;
   align-items: center;
-  gap: clamp(7px, 0.7vw, 14px);
-  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
+  gap: 14px;
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: clamp(2px, 0.25vw, 4px);
+  letter-spacing: 5px;
   color: var(--verde);
-  text-shadow: 0 0 10px var(--verde-glow);
+  text-shadow: 0 0 12px var(--verde-glow);
 }
 
 .status-dot {
-  width: clamp(7px, 0.7vw, 12px);
-  height: clamp(7px, 0.7vw, 12px);
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: var(--verde);
   box-shadow:
-    0 0 10px var(--verde),
-    0 0 22px rgba(62, 242, 179, 0.65);
+    0 0 12px var(--verde),
+    0 0 28px rgba(62, 242, 179, 0.65);
   animation: blink 2.2s ease-in-out infinite;
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
+  50%       { opacity: 0.40; }
 }
 
 .motorista-bloco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(8px, 1vw, 22px);
+  gap: 28px;
 }
 
 .rotulo {
-  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: clamp(4px, 0.5vw, 9px);
+  letter-spacing: 10px;
   color: var(--branco-60);
 }
 
 .motorista-nome {
-  font-size: clamp(2rem, 6vw, 9rem);
+  font-size: 130px;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: clamp(1px, 0.2vw, 4px);
+  line-height: 0.95;
+  letter-spacing: 4px;
   color: var(--branco-100);
   text-shadow:
-    0 0 24px rgba(255, 255, 255, 0.18),
-    0 0 40px rgba(62, 242, 179, 0.20),
-    0 6px 30px rgba(0, 0, 0, 0.35);
+    0 0 50px rgba(255, 255, 255, 0.18),
+    0 0 90px rgba(62, 242, 179, 0.22),
+    0 8px 50px rgba(0, 0, 0, 0.40);
   word-break: break-word;
+  max-width: 100%;
 }
 
 .placa {
-  font-size: clamp(1rem, 1.6vw, 2.4rem);
+  font-size: 38px;
   font-weight: 600;
-  letter-spacing: clamp(4px, 0.7vw, 12px);
+  letter-spacing: 14px;
   color: var(--verde);
   opacity: 0.92;
-  text-shadow: 0 0 10px rgba(62, 242, 179, 0.30);
+  text-shadow: 0 0 14px rgba(62, 242, 179, 0.32);
 }
 
 .veiculo-bloco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(3px, 0.4vw, 8px);
+  gap: 10px;
 }
 
 .veiculo-nome {
-  font-size: clamp(1rem, 1.65vw, 2.6rem);
+  font-size: 40px;
   font-weight: 700;
-  letter-spacing: clamp(3px, 0.4vw, 8px);
+  letter-spacing: 9px;
   color: var(--branco-70);
 }
 
 .veiculo-tipo {
-  font-size: clamp(0.6rem, 0.75vw, 1rem);
+  font-size: 16px;
   font-weight: 500;
-  letter-spacing: clamp(3px, 0.4vw, 7px);
+  letter-spacing: 8px;
   color: var(--branco-70);
 }
 
 /* ────────── HISTÓRICO ────────── */
 .historico {
-  padding: clamp(12px, 1.2vw, 24px) clamp(8px, 0.8vw, 16px) clamp(12px, 1.2vw, 24px) clamp(10px, 1vw, 20px);
+  padding: 26px 16px 26px 22px;
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 0.8vw, 16px);
+  gap: 18px;
 }
 
 .historico-header {
@@ -279,13 +280,13 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 4px;
+  padding-right: 6px;
 }
 
 .historico-header h2 {
-  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: clamp(3px, 0.4vw, 7px);
+  letter-spacing: 7px;
   color: var(--branco-90);
 }
 
@@ -296,28 +297,29 @@ body::after {
   color: var(--verde);
   opacity: 0.75;
   display: flex;
-  padding: 4px;
-  border-radius: 6px;
+  padding: 6px;
+  border-radius: 8px;
   transition: opacity 0.2s, background 0.2s;
 }
 .edit-btn:hover {
   opacity: 1;
   background: rgba(62, 242, 179, 0.10);
 }
+.edit-btn svg { width: 22px; height: 22px; }
 
 .historico-lista {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 14px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
   flex: 1;
   position: relative;
   z-index: 2;
 }
 
-.historico-lista::-webkit-scrollbar       { width: 3px; }
+.historico-lista::-webkit-scrollbar       { width: 5px; }
 .historico-lista::-webkit-scrollbar-track { background: transparent; }
 .historico-lista::-webkit-scrollbar-thumb {
   background: var(--verde-30);
@@ -326,8 +328,8 @@ body::after {
 
 .historico-item {
   position: relative;
-  border-radius: 14px;
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 16px 18px;
   background: linear-gradient(
     145deg,
     rgba(28, 40, 50, 0.55) 0%,
@@ -336,11 +338,10 @@ body::after {
   border: 1px solid rgba(62, 242, 179, 0.18);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 4px 14px rgba(0, 0, 0, 0.30);
+    0 6px 18px rgba(0, 0, 0, 0.30);
   overflow: hidden;
 }
 
-/* mesma textura nos itens (escala menor) */
 .historico-item::before {
   content: "";
   position: absolute;
@@ -348,7 +349,7 @@ body::after {
   pointer-events: none;
   opacity: 0.10;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='t2'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23t2)'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='t2'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23t2)'/></svg>");
 }
 
 .item-doca,
@@ -358,87 +359,70 @@ body::after {
 }
 
 .item-doca {
-  font-size: clamp(0.78rem, 0.95vw, 1.2rem);
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.2px;
   color: var(--branco-90);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 }
 
 .item-info {
-  font-size: clamp(0.58rem, 0.72vw, 0.9rem);
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   line-height: 1.4;
   color: var(--branco-60);
 }
 
-/* ────────── RESPONSIVO: TABLET/CELULAR PAISAGEM ────────── */
-@media (max-width: 900px) and (orientation: landscape) {
-  .painel {
-    grid-template-columns: clamp(110px, 18vw, 180px) 1fr clamp(140px, 22vw, 200px);
-    gap: 10px;
-    padding: 12px;
-  }
-}
-
-/* ────────── RESPONSIVO: CELULAR PORTRAIT ────────── */
-@media (max-width: 720px) and (orientation: portrait) {
+/* ────────── PORTRAIT (CELULAR / TABLET EM PÉ) ──────────
+   Em portrait não tem espaço pra layout 16:9 escalado, então
+   usamos um layout empilhado e adaptado à largura do device.            */
+@media (orientation: portrait) and (max-aspect-ratio: 9/10) {
   html, body { overflow: auto; }
 
   .painel {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
-    gap: 12px;
-    padding: 12px;
+    position: static;
+    transform: none;
+    top: auto;
+    left: auto;
+    width: 100%;
     height: auto;
     min-height: 100vh;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 12px;
+    padding: 12px;
   }
 
   .doca {
-    padding: 24px 16px;
     flex-direction: row;
-    gap: 18px;
+    gap: 20px;
+    padding: 22px;
     justify-content: center;
   }
-  .doca-label {
-    font-size: 0.9rem;
-    letter-spacing: 6px;
-  }
-  .doca-numero {
-    font-size: 4.5rem;
-    letter-spacing: -2px;
-  }
+  .doca-label  { font-size: 14px; letter-spacing: 8px; }
+  .doca-numero { font-size: 80px; letter-spacing: -3px; }
 
   .centro {
     padding: 24px 18px 28px;
     gap: 22px;
-    min-height: 60vh;
+    min-height: 50vh;
   }
-  .motorista-nome { font-size: clamp(2.2rem, 9vw, 3.6rem); }
-  .placa          { font-size: 1.2rem; letter-spacing: 5px; }
-  .veiculo-nome   { font-size: 1.2rem; letter-spacing: 4px; }
-  .veiculo-tipo   { font-size: 0.7rem; letter-spacing: 3px; }
+  .status         { font-size: 12px; letter-spacing: 3px; gap: 8px; }
+  .status-dot     { width: 8px; height: 8px; }
+  .rotulo         { font-size: 12px; letter-spacing: 6px; }
+  .motorista-nome { font-size: clamp(38px, 11vw, 64px); letter-spacing: 2px; }
+  .placa          { font-size: 22px; letter-spacing: 8px; }
+  .veiculo-nome   { font-size: 22px; letter-spacing: 5px; }
+  .veiculo-tipo   { font-size: 12px; letter-spacing: 4px; }
 
   .historico {
-    padding: 14px 12px 14px 14px;
-    max-height: 40vh;
+    padding: 16px 12px 16px 14px;
+    gap: 12px;
+    max-height: 60vh;
   }
-  .historico-header h2 { font-size: 0.78rem; letter-spacing: 4px; }
-  .item-doca { font-size: 0.92rem; }
-  .item-info { font-size: 0.68rem; }
-}
-
-/* ────────── RESPONSIVO: TV / TELÃO (4K+) ────────── */
-@media (min-width: 2200px) {
-  .painel {
-    gap: 28px;
-    padding: 30px;
-  }
-}
-
-/* tela muito estreita e baixa (fallback extremo) */
-@media (max-height: 480px) and (orientation: landscape) {
-  .doca-numero   { font-size: clamp(3rem, 8vw, 6rem); }
-  .motorista-nome { font-size: clamp(1.8rem, 5vw, 3.5rem); }
+  .historico-header h2 { font-size: 12px; letter-spacing: 4px; }
+  .item-doca           { font-size: 14px; }
+  .item-info           { font-size: 11px; }
+  .historico-item      { padding: 12px 14px; border-radius: 12px; }
 }

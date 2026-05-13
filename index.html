@@ -53,6 +53,25 @@
 
   <script src="script.js"></script>
   <script>
+    // ────────── ESCALA PROPORCIONAL ──────────
+    // O painel é desenhado em 1920x1080 e escalado uniformemente
+    // pra qualquer tela (PC, TV 4K, mobile landscape), mantendo as
+    // proporções idênticas em qualquer resolução.
+    function aplicarEscala() {
+      // só escala em landscape (em portrait usamos layout próprio via CSS)
+      const isPortrait = window.matchMedia("(orientation: portrait) and (max-aspect-ratio: 9/10)").matches;
+      if (isPortrait) {
+        document.documentElement.style.setProperty("--scale", "1");
+        return;
+      }
+      const escala = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      document.documentElement.style.setProperty("--scale", escala);
+    }
+    aplicarEscala();
+    window.addEventListener("resize", aplicarEscala);
+    window.addEventListener("orientationchange", aplicarEscala);
+
+    // ────────── RENDER ──────────
     function render(estado) {
       document.getElementById("campo-doca").textContent      = estado.doca;
       document.getElementById("campo-status").textContent    = estado.status;

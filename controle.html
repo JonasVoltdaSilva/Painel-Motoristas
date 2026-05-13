@@ -12,16 +12,52 @@
 </head>
 <body class="ctrl-body">
 
-  <main class="ctrl-wrap">
+  <!-- ────────── OVERLAY DE LOGIN ────────── -->
+  <div class="auth-overlay" id="auth-overlay">
+    <form class="auth-card" id="auth-form" autocomplete="off">
+      <h1 id="auth-titulo">ENTRAR</h1>
+      <p id="auth-desc">Digite a senha para editar o painel</p>
+
+      <div class="auth-campos">
+        <input
+          type="password"
+          id="auth-senha"
+          placeholder="Senha"
+          autocomplete="current-password"
+          required
+        />
+        <input
+          type="password"
+          id="auth-senha2"
+          placeholder="Confirmar senha"
+          autocomplete="new-password"
+          style="display: none;"
+        />
+      </div>
+
+      <p class="auth-erro" id="auth-erro"></p>
+
+      <button type="submit" class="auth-btn" id="auth-btn">Entrar</button>
+
+      <a href="index.html" class="auth-voltar">&larr; Ver painel sem editar</a>
+    </form>
+  </div>
+
+  <!-- ────────── INTERFACE DE CONTROLE ────────── -->
+  <main class="ctrl-wrap" id="ctrl-wrap" style="display: none;">
     <header class="ctrl-header">
       <div>
         <h1>CONTROLE</h1>
         <p>Edite os campos &mdash; o painel atualiza ao vivo</p>
       </div>
-      <a href="index.html" class="ctrl-link" id="link-painel">&larr; Ver painel</a>
+      <div class="ctrl-header-acoes">
+        <a href="index.html" class="ctrl-link" id="link-painel">&larr; Ver painel</a>
+        <button class="ctrl-link ctrl-link-warn" id="btn-trocar-senha" type="button" title="Trocar senha">🔑</button>
+        <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">⏻</button>
+      </div>
     </header>
 
-    <!-- COMPARTILHAR (zero setup) -->
+    <!-- COMPARTILHAR -->
     <section class="ctrl-card ctrl-sync">
       <div class="ctrl-card-header">
         <h2>
@@ -31,9 +67,7 @@
         <span class="sync-resultado" id="sync-resultado"></span>
       </div>
 
-      <p class="sync-desc" id="sync-desc">
-        Conectando automaticamente...
-      </p>
+      <p class="sync-desc" id="sync-desc">Conectando à nuvem...</p>
 
       <div class="sync-form">
         <label class="ctrl-field ctrl-field-wide">
@@ -46,7 +80,7 @@
         </div>
         <p class="sync-tip">
           📌 Abra o <b>link do painel</b> no PC/TV pra exibir os dados.<br>
-          📲 Abra o <b>link do controle</b> em qualquer outro dispositivo pra editar de lá também.
+          📲 Abra o <b>link do controle</b> em qualquer outro dispositivo &mdash; precisa da senha pra editar.
         </p>
       </div>
     </section>
@@ -121,16 +155,119 @@
     </section>
 
     <div class="ctrl-acoes">
-      <button class="btn btn-ghost" id="resetar" type="button">Resetar tudo</button>
+      <button class="btn btn-ghost" id="resetar" type="button">Resetar dados (mantém senha)</button>
       <span class="ctrl-status" id="ctrl-status">Salvo automaticamente</span>
     </div>
   </main>
 
   <script src="script.js"></script>
   <script>
-    let estado = carregar();
+    // ════════════════════════════════════════════════════
+    // FLUXO DE AUTENTICAÇÃO
+    // ════════════════════════════════════════════════════
+    let estado          = carregar();
+    let modoTrocarSenha = false;
 
-    // ────────── BIND DOS CAMPOS ──────────
+    const overlayEl = document.getElementById("auth-overlay");
+    const formAuth  = document.getElementById("auth-form");
+    const tituloEl  = document.getElementById("auth-titulo");
+    const descEl    = document.getElementById("auth-desc");
+    const senhaEl   = document.getElementById("auth-senha");
+    const senha2El  = document.getElementById("auth-senha2");
+    const btnAuthEl = document.getElementById("auth-btn");
+    const erroEl    = document.getElementById("auth-erro");
+    const ctrlWrap  = document.getElementById("ctrl-wrap");
+
+    function configurarOverlay() {
+      // Decide entre: setup inicial / login / trocar senha
+      if (modoTrocarSenha) {
+        tituloEl.textContent = "TROCAR SENHA";
+        descEl.textContent   = "Defina uma nova senha";
+        senha2El.style.display = "block";
+        senhaEl.placeholder  = "Nova senha";
+        btnAuthEl.textContent = "Salvar nova senha";
+      } else if (!estado.senhaHash) {
+        tituloEl.textContent = "CRIAR SENHA";
+        descEl.textContent   = "Primeira vez aqui — defina uma senha para proteger as edições. Todo mundo que for editar precisa dela.";
+        senha2El.style.display = "block";
+        senhaEl.placeholder  = "Senha";
+        btnAuthEl.textContent = "Criar senha";
+      } else {
+        tituloEl.textContent = "ENTRAR";
+        descEl.textContent   = "Digite a senha para editar o painel";
+        senha2El.style.display = "none";
+        senhaEl.placeholder  = "Senha";
+        btnAuthEl.textContent = "Entrar";
+      }
+      erroEl.textContent = "";
+      senhaEl.value = "";
+      senha2El.value = "";
+      setTimeout(() => senhaEl.focus(), 50);
+    }
+
+    function mostrarOverlay() {
+      configurarOverlay();
+      overlayEl.classList.add("visivel");
+      ctrlWrap.style.display = "none";
+    }
+
+    function esconderOverlay() {
+      overlayEl.classList.remove("visivel");
+      ctrlWrap.style.display = "";
+    }
+
+    formAuth.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const senha = senhaEl.value.trim();
+      if (senha.length < 4) {
+        erroEl.textContent = "A senha precisa ter pelo menos 4 caracteres.";
+        return;
+      }
+
+      // SETUP INICIAL ou TROCAR SENHA
+      if (modoTrocarSenha || !estado.senhaHash) {
+        const senha2 = senha2El.value.trim();
+        if (senha !== senha2) {
+          erroEl.textContent = "As senhas não conferem.";
+          return;
+        }
+        const hash = await hashSenha(senha);
+        estado.senhaHash = hash;
+        salvar(estado);
+        logar(hash);
+        modoTrocarSenha = false;
+        esconderOverlay();
+        preencher();
+        return;
+      }
+
+      // LOGIN
+      const hash = await hashSenha(senha);
+      if (hash !== estado.senhaHash) {
+        erroEl.textContent = "Senha incorreta.";
+        senhaEl.value = "";
+        senhaEl.focus();
+        return;
+      }
+      logar(hash);
+      esconderOverlay();
+      preencher();
+    });
+
+    document.getElementById("btn-sair").addEventListener("click", () => {
+      if (!confirm("Sair? Você precisará da senha pra editar de novo.")) return;
+      deslogar();
+      mostrarOverlay();
+    });
+
+    document.getElementById("btn-trocar-senha").addEventListener("click", () => {
+      modoTrocarSenha = true;
+      mostrarOverlay();
+    });
+
+    // ════════════════════════════════════════════════════
+    // CONTROLE (edição)
+    // ════════════════════════════════════════════════════
     const campos = {
       "in-doca":       "doca",
       "in-status":     "status",
@@ -147,6 +284,7 @@
       });
       document.getElementById("in-paletizada").checked = !!estado.paletizada;
       renderHistorico();
+      atualizarLinkUI();
     }
 
     Object.entries(campos).forEach(([id, key]) => {
@@ -170,7 +308,6 @@
       sinalizarSalvo();
     });
 
-    // ────────── HISTÓRICO ──────────
     function renderHistorico() {
       const cont = document.getElementById("hist-lista");
       cont.innerHTML = estado.historico.map((h, i) => `
@@ -215,19 +352,23 @@
       sinalizarSalvo();
     });
 
-    // ────────── RESET ──────────
     document.getElementById("resetar").addEventListener("click", () => {
-      if (!confirm("Resetar para os valores padrão? (mantém o link de sincronização)")) return;
+      if (!confirm("Resetar os dados (motorista, placa, histórico…)? A senha continua a mesma.")) return;
+      const senhaHashAtual = estado.senhaHash;
+      const idSync         = obterSyncId();
       localStorage.removeItem(STORAGE_KEY);
       estado = carregar();
+      estado.senhaHash = senhaHashAtual;
       salvar(estado);
       preencher();
       sinalizarSalvo();
     });
 
-    // ────────── SYNC AUTOMÁTICA ──────────
+    // ════════════════════════════════════════════════════
+    // SYNC LINKS
+    // ════════════════════════════════════════════════════
     const ledEl     = document.getElementById("sync-led");
-    const descEl    = document.getElementById("sync-desc");
+    const descSyncEl= document.getElementById("sync-desc");
     const resEl     = document.getElementById("sync-resultado");
     const linkInput = document.getElementById("link-painel-share");
     const linkAnchor= document.getElementById("link-painel");
@@ -236,16 +377,15 @@
       const idAtual = obterSyncId();
       if (idAtual) {
         ledEl.className = "sync-indicador on";
-        descEl.innerHTML = `Sincronizado: <code>${idAtual.substring(0, 10)}…</code>`;
+        descSyncEl.innerHTML = `Sincronizado: <code>${idAtual.substring(0, 10)}…</code>`;
         const link = linkCompartilhavel("index.html");
         linkInput.value = link || "";
-        // injeta ?id= no botão "Ver painel" também
         linkAnchor.href = link || "index.html";
         resEl.textContent = "✓ Conectado";
         resEl.className = "sync-resultado ok";
       } else {
         ledEl.className = "sync-indicador off";
-        descEl.textContent = "Conectando à nuvem...";
+        descSyncEl.textContent = "Conectando à nuvem...";
         resEl.textContent = "";
         resEl.className = "sync-resultado";
       }
@@ -255,16 +395,17 @@
       atualizarLinkUI();
       const r = await inicializarNuvem();
       if (r) {
-        // sincroniza com o que veio da nuvem (ou criou)
         estado = carregar();
-        preencher();
         atualizarLinkUI();
-        if (r.criado) {
-          resEl.textContent = "✓ Espaço criado";
-          resEl.className = "sync-resultado ok";
+        // recheca auth com o estado atualizado da nuvem
+        if (estado.senhaHash && !estaLogado(estado)) {
+          mostrarOverlay();
+        } else {
+          esconderOverlay();
+          preencher();
         }
       } else {
-        descEl.textContent = "Sem conexão com a nuvem — alterações ficam apenas neste navegador";
+        descSyncEl.textContent = "Sem conexão com a nuvem — alterações ficam apenas neste navegador";
         resEl.textContent = "✗ Sem conexão";
         resEl.className = "sync-resultado erro";
       }
@@ -286,7 +427,7 @@
       copiar(linkCompartilhavel("controle.html"), e.target);
     });
 
-    // ────────── INDICADOR DE SALVO ──────────
+    // indicador salvo
     let timer;
     function sinalizarSalvo() {
       const el = document.getElementById("ctrl-status");
@@ -299,12 +440,31 @@
       }, 400);
     }
 
-    // ────────── INIT ──────────
-    preencher();
+    // ════════════════════════════════════════════════════
+    // INIT
+    // ════════════════════════════════════════════════════
+    // Inscrição em mudanças (mesmo deslogado, sincroniza o estado)
     inscrever((novo) => {
       estado = novo;
+      // se a senha mudou em outro dispositivo, força login de novo
+      if (estado.senhaHash && !estaLogado(estado)) {
+        mostrarOverlay();
+        return;
+      }
       preencher();
     });
+
+    // Decide se mostra login ou interface direto
+    if (!estado.senhaHash) {
+      // Setup inicial (sem senha definida ainda)
+      mostrarOverlay();
+    } else if (!estaLogado(estado)) {
+      mostrarOverlay();
+    } else {
+      esconderOverlay();
+      preencher();
+    }
+
     setupNuvem();
   </script>
 </body>

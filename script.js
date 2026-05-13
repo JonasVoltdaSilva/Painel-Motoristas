@@ -19,10 +19,35 @@ const ESTADO_PADRAO = {
 
 const STORAGE_KEY = "painel-motoristas:v1";
 const SYNC_ID_KEY = "painel-motoristas:sync-id";
+const AUTH_KEY    = "painel-motoristas:auth:v1";
 const CANAL       = "painel-motoristas";
 
 // Endpoint público, sem conta, sem chave (CORS aberto)
 const JSONBLOB_BASE = "https://jsonblob.com/api/jsonBlob";
+
+// ────────── HASH DE SENHA (SHA-256) ──────────
+async function hashSenha(senha) {
+  const buf = new TextEncoder().encode(String(senha || ""));
+  const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// ────────── AUTH (login local) ──────────
+function logar(hash) {
+  localStorage.setItem(AUTH_KEY, hash);
+}
+
+function deslogar() {
+  localStorage.removeItem(AUTH_KEY);
+}
+
+function estaLogado(estado) {
+  const stored = localStorage.getItem(AUTH_KEY);
+  if (!estado || !estado.senhaHash) return false;
+  return stored === estado.senhaHash;
+}
 
 // ────────── ARMAZENAMENTO LOCAL ──────────
 function carregar() {

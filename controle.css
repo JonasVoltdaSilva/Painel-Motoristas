@@ -350,6 +350,31 @@
 .sync-resultado.ok   { color: var(--verde); }
 .sync-resultado.erro { color: rgba(255, 130, 140, 0.95); }
 
+.sync-tip {
+  margin-top: 12px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--branco-60);
+  line-height: 1.7;
+  background: rgba(62, 242, 179, 0.04);
+  border: 1px solid rgba(62, 242, 179, 0.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.sync-tip b {
+  color: var(--verde);
+  font-weight: 700;
+}
+
+#link-painel-share {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace !important;
+  font-size: 0.75rem !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--verde) !important;
+}
+
 /* ajuda */
 .ajuda {
   margin-top: 16px;

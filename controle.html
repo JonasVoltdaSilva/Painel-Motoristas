@@ -18,45 +18,37 @@
         <h1>CONTROLE</h1>
         <p>Edite os campos &mdash; o painel atualiza ao vivo</p>
       </div>
-      <a href="index.html" class="ctrl-link">&larr; Ver painel</a>
+      <a href="index.html" class="ctrl-link" id="link-painel">&larr; Ver painel</a>
     </header>
 
-    <!-- SYNC ENTRE DISPOSITIVOS -->
+    <!-- COMPARTILHAR (zero setup) -->
     <section class="ctrl-card ctrl-sync">
       <div class="ctrl-card-header">
         <h2>
           <span class="sync-indicador" id="sync-led"></span>
-          Sincronização entre dispositivos
+          Sincronizar com outro dispositivo
         </h2>
-        <button class="btn btn-sm btn-ghost" id="toggle-ajuda" type="button">Como conectar?</button>
+        <span class="sync-resultado" id="sync-resultado"></span>
       </div>
 
       <p class="sync-desc" id="sync-desc">
-        Sem nuvem configurada — alterações ficam apenas neste navegador.
+        Conectando automaticamente...
       </p>
 
       <div class="sync-form">
         <label class="ctrl-field ctrl-field-wide">
-          <span>URL do Firebase Realtime Database</span>
-          <input type="url" id="in-firebase" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" />
+          <span>Link para abrir no monitor / PC</span>
+          <input type="text" id="link-painel-share" readonly />
         </label>
         <div class="sync-acoes">
-          <button class="btn" id="conectar-nuvem" type="button">Conectar</button>
-          <button class="btn btn-ghost" id="desconectar-nuvem" type="button">Desconectar</button>
-          <span class="sync-resultado" id="sync-resultado"></span>
+          <button class="btn" id="copiar-link" type="button">Copiar link do painel</button>
+          <button class="btn btn-ghost" id="copiar-controle" type="button">Copiar link do controle</button>
         </div>
+        <p class="sync-tip">
+          📌 Abra o <b>link do painel</b> no PC/TV pra exibir os dados.<br>
+          📲 Abra o <b>link do controle</b> em qualquer outro dispositivo pra editar de lá também.
+        </p>
       </div>
-
-      <details class="ajuda" id="ajuda-bloco">
-        <summary>Setup Firebase em 4 passos (pelo celular, gratuito)</summary>
-        <ol>
-          <li>Abra <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> e clique em <b>Adicionar projeto</b>. Dê um nome (ex: <i>painel-motoristas</i>) e pule o Google Analytics.</li>
-          <li>No menu lateral: <b>Build → Realtime Database → Criar banco de dados</b>. Escolha qualquer local. Selecione <b>"Iniciar em modo de teste"</b>.</li>
-          <li>Na tela do banco, copie a URL no topo (algo como <code>https://painel-motoristas-xxx-default-rtdb.firebaseio.com</code>).</li>
-          <li>Cole acima e clique em <b>Conectar</b>. Pronto — agora qualquer dispositivo que abrir o painel e colar esta mesma URL fica sincronizado em tempo real.</li>
-        </ol>
-        <p class="aviso">⚠️ Em modo de teste, qualquer pessoa com a URL pode editar. Pra produção, configure regras de auth no Firebase.</p>
-      </details>
     </section>
 
     <!-- ATUAL -->
@@ -225,7 +217,7 @@
 
     // ────────── RESET ──────────
     document.getElementById("resetar").addEventListener("click", () => {
-      if (!confirm("Resetar para os valores padrão?")) return;
+      if (!confirm("Resetar para os valores padrão? (mantém o link de sincronização)")) return;
       localStorage.removeItem(STORAGE_KEY);
       estado = carregar();
       salvar(estado);
@@ -233,57 +225,65 @@
       sinalizarSalvo();
     });
 
-    // ────────── SYNC (NUVEM) ──────────
-    const ledEl       = document.getElementById("sync-led");
-    const descEl      = document.getElementById("sync-desc");
-    const inputUrl    = document.getElementById("in-firebase");
-    const resEl       = document.getElementById("sync-resultado");
-    const ajudaBloco  = document.getElementById("ajuda-bloco");
+    // ────────── SYNC AUTOMÁTICA ──────────
+    const ledEl     = document.getElementById("sync-led");
+    const descEl    = document.getElementById("sync-desc");
+    const resEl     = document.getElementById("sync-resultado");
+    const linkInput = document.getElementById("link-painel-share");
+    const linkAnchor= document.getElementById("link-painel");
 
-    function refreshLed() {
-      const url = getNuvemUrl();
-      if (url) {
+    function atualizarLinkUI() {
+      const idAtual = obterSyncId();
+      if (idAtual) {
         ledEl.className = "sync-indicador on";
-        descEl.innerHTML = `Conectado: <code>${url.replace(/^https?:\/\//, "")}</code>`;
-        inputUrl.value = url;
+        descEl.innerHTML = `Sincronizado: <code>${idAtual.substring(0, 10)}…</code>`;
+        const link = linkCompartilhavel("index.html");
+        linkInput.value = link || "";
+        // injeta ?id= no botão "Ver painel" também
+        linkAnchor.href = link || "index.html";
+        resEl.textContent = "✓ Conectado";
+        resEl.className = "sync-resultado ok";
       } else {
         ledEl.className = "sync-indicador off";
-        descEl.textContent = "Sem nuvem configurada — alterações ficam apenas neste navegador.";
+        descEl.textContent = "Conectando à nuvem...";
+        resEl.textContent = "";
+        resEl.className = "sync-resultado";
       }
     }
 
-    document.getElementById("conectar-nuvem").addEventListener("click", async () => {
-      const url = inputUrl.value.trim();
-      if (!url) { resEl.textContent = "Informe a URL."; resEl.className = "sync-resultado erro"; return; }
-      if (!/^https?:\/\//.test(url)) { resEl.textContent = "URL precisa começar com https://"; resEl.className = "sync-resultado erro"; return; }
-      setNuvemUrl(url);
-      resEl.textContent = "Testando…";
-      resEl.className = "sync-resultado";
-      const teste = await testarNuvem();
-      if (teste.ok) {
-        resEl.textContent = "✓ Conectado e funcionando";
-        resEl.className = "sync-resultado ok";
-        await salvarNuvem(estado);
-        iniciarPolling((novo) => { estado = novo; preencher(); });
-        refreshLed();
+    async function setupNuvem() {
+      atualizarLinkUI();
+      const r = await inicializarNuvem();
+      if (r) {
+        // sincroniza com o que veio da nuvem (ou criou)
+        estado = carregar();
+        preencher();
+        atualizarLinkUI();
+        if (r.criado) {
+          resEl.textContent = "✓ Espaço criado";
+          resEl.className = "sync-resultado ok";
+        }
       } else {
-        resEl.textContent = "✗ Falhou: " + teste.erro;
+        descEl.textContent = "Sem conexão com a nuvem — alterações ficam apenas neste navegador";
+        resEl.textContent = "✗ Sem conexão";
         resEl.className = "sync-resultado erro";
-        setNuvemUrl("");
-        refreshLed();
       }
-    });
+    }
 
-    document.getElementById("desconectar-nuvem").addEventListener("click", () => {
-      pararPolling();
-      setNuvemUrl("");
-      resEl.textContent = "Desconectado";
-      resEl.className = "sync-resultado";
-      refreshLed();
-    });
+    function copiar(texto, botao) {
+      if (!texto) return;
+      navigator.clipboard?.writeText(texto).then(() => {
+        const original = botao.textContent;
+        botao.textContent = "✓ Copiado!";
+        setTimeout(() => { botao.textContent = original; }, 1600);
+      });
+    }
 
-    document.getElementById("toggle-ajuda").addEventListener("click", () => {
-      ajudaBloco.open = !ajudaBloco.open;
+    document.getElementById("copiar-link").addEventListener("click", (e) => {
+      copiar(linkCompartilhavel("index.html"), e.target);
+    });
+    document.getElementById("copiar-controle").addEventListener("click", (e) => {
+      copiar(linkCompartilhavel("controle.html"), e.target);
     });
 
     // ────────── INDICADOR DE SALVO ──────────
@@ -296,16 +296,16 @@
       timer = setTimeout(() => {
         el.textContent = "Salvo ✓";
         el.classList.remove("salvando");
-      }, 350);
+      }, 400);
     }
 
     // ────────── INIT ──────────
-    refreshLed();
     preencher();
     inscrever((novo) => {
       estado = novo;
       preencher();
     });
+    setupNuvem();
   </script>
 </body>
 </html>

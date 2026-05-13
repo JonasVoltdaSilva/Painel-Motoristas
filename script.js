@@ -18,8 +18,11 @@ const ESTADO_PADRAO = {
 };
 
 const STORAGE_KEY = "painel-motoristas:v1";
-const CONFIG_KEY  = "painel-motoristas:config:v1";
+const SYNC_ID_KEY = "painel-motoristas:sync-id";
 const CANAL       = "painel-motoristas";
+
+// Endpoint público, sem conta, sem chave (CORS aberto)
+const JSONBLOB_BASE = "https://jsonblob.com/api/jsonBlob";
 
 // ────────── ARMAZENAMENTO LOCAL ──────────
 function carregar() {
@@ -41,34 +44,74 @@ function salvarLocal(estado) {
   } catch {}
 }
 
+// salvar = grava local + envia pra nuvem (debounced)
+let salvarTimer = null;
 function salvar(estado) {
   salvarLocal(estado);
-  salvarNuvem(estado);
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(() => salvarNuvem(estado), 300);
 }
 
-// ────────── CONFIG NUVEM (FIREBASE) ──────────
-function getNuvemUrl() {
-  try {
-    const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}");
-    return cfg.firebaseUrl || null;
-  } catch { return null; }
-}
-
-function setNuvemUrl(url) {
-  const limpa = (url || "").trim().replace(/\/+$/, "");
-  if (!limpa) {
-    localStorage.removeItem(CONFIG_KEY);
-    return null;
+// ────────── SYNC ID (id do blob na nuvem) ──────────
+function obterSyncId() {
+  // prioridade: URL > localStorage
+  const url = new URL(window.location.href);
+  const idDaUrl = url.searchParams.get("id");
+  if (idDaUrl) {
+    localStorage.setItem(SYNC_ID_KEY, idDaUrl);
+    return idDaUrl;
   }
-  localStorage.setItem(CONFIG_KEY, JSON.stringify({ firebaseUrl: limpa }));
-  return limpa;
+  return localStorage.getItem(SYNC_ID_KEY) || null;
+}
+
+function definirSyncId(id) {
+  localStorage.setItem(SYNC_ID_KEY, id);
+  // injeta ?id= na URL sem recarregar
+  const url = new URL(window.location.href);
+  url.searchParams.set("id", id);
+  history.replaceState({}, "", url);
+}
+
+function linkCompartilhavel(pagina = "index.html") {
+  const id = obterSyncId();
+  if (!id) return null;
+  const url = new URL(pagina, window.location.href);
+  url.searchParams.set("id", id);
+  return url.toString();
+}
+
+// ────────── NUVEM (jsonblob.com) ──────────
+async function criarBlob(estado) {
+  const r = await fetch(JSONBLOB_BASE, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept":       "application/json",
+    },
+    body: JSON.stringify(estado),
+  });
+  if (!r.ok) throw new Error(`Falhou ao criar blob (HTTP ${r.status})`);
+  // jsonblob retorna o ID no header Location e no path da resposta
+  const loc = r.headers.get("Location") || "";
+  let id = loc.split("/").pop();
+  if (!id) {
+    // fallback: tentar URL completa na resposta
+    const txt = await r.text();
+    const m = txt.match(/jsonBlob\/([a-zA-Z0-9-]+)/);
+    if (m) id = m[1];
+  }
+  if (!id) throw new Error("Não conseguiu obter ID do blob");
+  return id;
 }
 
 async function carregarNuvem() {
-  const base = getNuvemUrl();
-  if (!base) return null;
+  const id = obterSyncId();
+  if (!id) return null;
   try {
-    const r = await fetch(`${base}/painel.json`, { cache: "no-store" });
+    const r = await fetch(`${JSONBLOB_BASE}/${id}`, {
+      cache: "no-store",
+      headers: { "Accept": "application/json" },
+    });
     if (!r.ok) return null;
     return await r.json();
   } catch {
@@ -77,33 +120,45 @@ async function carregarNuvem() {
 }
 
 async function salvarNuvem(estado) {
-  const base = getNuvemUrl();
-  if (!base) return false;
+  let id = obterSyncId();
   try {
-    const r = await fetch(`${base}/painel.json`, {
+    if (!id) {
+      // primeira vez: criar blob
+      id = await criarBlob(estado);
+      definirSyncId(id);
+      return true;
+    }
+    const r = await fetch(`${JSONBLOB_BASE}/${id}`, {
       method: "PUT",
-      body: JSON.stringify(estado),
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(estado),
     });
     return r.ok;
-  } catch {
+  } catch (e) {
+    console.warn("Sync nuvem falhou:", e);
     return false;
   }
 }
 
-async function testarNuvem() {
-  const base = getNuvemUrl();
-  if (!base) return { ok: false, erro: "Sem URL configurada" };
+// inicialização automática: garante que o blob existe
+async function inicializarNuvem() {
+  let id = obterSyncId();
+  if (id) {
+    // tenta puxar o que está na nuvem
+    const remoto = await carregarNuvem();
+    if (remoto) {
+      salvarLocal(remoto);
+      return { id, criado: false };
+    }
+  }
+  // sem ID válido → criar agora
   try {
-    const r = await fetch(`${base}/_ping.json`, {
-      method: "PUT",
-      body: JSON.stringify(Date.now()),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!r.ok) return { ok: false, erro: `HTTP ${r.status}` };
-    return { ok: true };
+    id = await criarBlob(carregar());
+    definirSyncId(id);
+    return { id, criado: true };
   } catch (e) {
-    return { ok: false, erro: String(e.message || e) };
+    console.warn("Não foi possível inicializar nuvem:", e);
+    return null;
   }
 }
 
@@ -112,7 +167,7 @@ let pollTimer = null;
 let ultimoSerializado = "";
 
 function inscrever(callback) {
-  // mesmo navegador (outras abas)
+  // mesma janela / outras abas do mesmo browser
   try {
     const bc = new BroadcastChannel(CANAL);
     bc.onmessage = (e) => callback(e.data);
@@ -123,15 +178,15 @@ function inscrever(callback) {
     }
   });
 
-  // outros dispositivos via nuvem (polling 2.5s)
+  // dispositivos diferentes → polling
   iniciarPolling(callback);
 }
 
 function iniciarPolling(callback) {
   pararPolling();
-  if (!getNuvemUrl()) return;
   ultimoSerializado = JSON.stringify(carregar());
   pollTimer = setInterval(async () => {
+    if (!obterSyncId()) return;
     const nuvem = await carregarNuvem();
     if (!nuvem) return;
     const s = JSON.stringify(nuvem);
@@ -147,9 +202,9 @@ function pararPolling() {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 }
 
-// ao reconectar a aba (volta do background), forçar sync imediato
+// sync imediato ao voltar foco
 document.addEventListener("visibilitychange", async () => {
-  if (document.visibilityState === "visible" && getNuvemUrl()) {
+  if (document.visibilityState === "visible" && obterSyncId()) {
     const nuvem = await carregarNuvem();
     if (nuvem) {
       ultimoSerializado = JSON.stringify(nuvem);

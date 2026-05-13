@@ -72,8 +72,18 @@
       `).join("");
     }
 
+    // 1. render imediato com o que tem local
     render(carregar());
+    // 2. inscrever em mudanças (BroadcastChannel + storage + polling)
     inscrever(render);
+    // 3. tentar puxar versão mais nova da nuvem (se já existe sync ID)
+    (async () => {
+      const remoto = await carregarNuvem();
+      if (remoto) {
+        salvarLocal(remoto);
+        render(remoto);
+      }
+    })();
   </script>
 </body>
 </html>

@@ -17,8 +17,6 @@
   --branco-70:  rgba(255, 255, 255, 0.70);
   --branco-60:  rgba(255, 255, 255, 0.60);
   --branco-40:  rgba(255, 255, 255, 0.40);
-
-  --scale: 1;
 }
 
 html, body {
@@ -34,22 +32,22 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ────────── FUNDO: BOKEH VERDE DIFUSO ────────── */
+/* ────────── FUNDO ────────── */
 body {
   background:
-    radial-gradient(circle 180px at 8% 20%,  rgba(62, 242, 179, 0.45), transparent 70%),
-    radial-gradient(circle 240px at 22% 80%, rgba(62, 242, 179, 0.55), transparent 70%),
-    radial-gradient(circle 140px at 38% 35%, rgba(62, 242, 179, 0.32), transparent 70%),
-    radial-gradient(circle 200px at 50% 92%, rgba(62, 242, 179, 0.38), transparent 70%),
-    radial-gradient(circle 160px at 65% 18%, rgba(62, 242, 179, 0.30), transparent 70%),
-    radial-gradient(circle 220px at 78% 62%, rgba(62, 242, 179, 0.48), transparent 70%),
-    radial-gradient(circle 130px at 92% 12%, rgba(62, 242, 179, 0.25), transparent 70%),
-    radial-gradient(circle 180px at 96% 88%, rgba(62, 242, 179, 0.35), transparent 70%),
-    radial-gradient(circle 110px at 14% 50%, rgba(62, 242, 179, 0.20), transparent 70%),
-    radial-gradient(circle 150px at 45% 60%, rgba(62, 242, 179, 0.22), transparent 70%),
-    radial-gradient(circle 120px at 72% 88%, rgba(62, 242, 179, 0.28), transparent 70%),
-    radial-gradient(circle 100px at 30% 12%, rgba(62, 242, 179, 0.20), transparent 70%),
-    radial-gradient(circle 300px at 85% 30%, rgba(40, 80, 180, 0.25), transparent 70%),
+    radial-gradient(circle 18vmin at 8% 20%,  rgba(62, 242, 179, 0.45), transparent 70%),
+    radial-gradient(circle 24vmin at 22% 80%, rgba(62, 242, 179, 0.55), transparent 70%),
+    radial-gradient(circle 14vmin at 38% 35%, rgba(62, 242, 179, 0.32), transparent 70%),
+    radial-gradient(circle 20vmin at 50% 92%, rgba(62, 242, 179, 0.38), transparent 70%),
+    radial-gradient(circle 16vmin at 65% 18%, rgba(62, 242, 179, 0.30), transparent 70%),
+    radial-gradient(circle 22vmin at 78% 62%, rgba(62, 242, 179, 0.48), transparent 70%),
+    radial-gradient(circle 13vmin at 92% 12%, rgba(62, 242, 179, 0.25), transparent 70%),
+    radial-gradient(circle 18vmin at 96% 88%, rgba(62, 242, 179, 0.35), transparent 70%),
+    radial-gradient(circle 11vmin at 14% 50%, rgba(62, 242, 179, 0.20), transparent 70%),
+    radial-gradient(circle 15vmin at 45% 60%, rgba(62, 242, 179, 0.22), transparent 70%),
+    radial-gradient(circle 12vmin at 72% 88%, rgba(62, 242, 179, 0.28), transparent 70%),
+    radial-gradient(circle 10vmin at 30% 12%, rgba(62, 242, 179, 0.20), transparent 70%),
+    radial-gradient(circle 30vmin at 85% 30%, rgba(40, 80, 180, 0.25), transparent 70%),
     var(--bg-base);
   filter: saturate(1.05);
 }
@@ -75,43 +73,36 @@ body::after {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
-/* ────────── PAINEL: DESIGN BASE 1920x1080 ESCALADO ──────────
-   O painel é desenhado em pixels absolutos numa base 1920x1080
-   e o JavaScript aplica scale() proporcional pra caber em qualquer tela.
-   Isso garante que TODAS as proporções (texto, espaços, cards) ficam
-   exatamente iguais em qualquer resolução — só muda o tamanho.            */
+/* ────────── PAINEL: LAYOUT ADAPTATIVO ──────────
+   - Larguras das colunas em vw (proporção horizontal)
+   - Fontes em vmin (escala com a menor dimensão = mantém legibilidade)
+   - Adapta automaticamente a cada aspect ratio                          */
 .painel {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 1920px;
-  height: 1080px;
-  transform: translate(-50%, -50%) scale(var(--scale));
-  transform-origin: center center;
-
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  gap: 22px;
-  padding: 26px;
+  grid-template-columns: 17vw 1fr 19vw;
+  gap: 1.4vmin;
+  padding: 1.6vmin;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* ────────── CARDS ────────── */
 .card,
 .historico {
   position: relative;
-  border-radius: 26px;
+  border-radius: 2.4vmin;
   background: linear-gradient(
     145deg,
     rgba(20, 32, 42, 0.55) 0%,
     rgba(10, 18, 26, 0.48) 100%
   );
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1.5px solid var(--verde-50);
+  backdrop-filter: blur(2.2vmin) saturate(160%);
+  -webkit-backdrop-filter: blur(2.2vmin) saturate(160%);
+  border: 0.15vmin solid var(--verde-50);
   box-shadow:
-    inset 0 0 26px rgba(62, 242, 179, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 56px rgba(0, 0, 0, 0.50);
+    inset 0 0 2.6vmin rgba(62, 242, 179, 0.08),
+    inset 0 0.1vmin 0 rgba(255, 255, 255, 0.08),
+    0 1.8vmin 5.6vmin rgba(0, 0, 0, 0.50);
   overflow: hidden;
 }
 
@@ -143,30 +134,30 @@ body::after {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 12px;
+  gap: 1.2vmin;
 }
 
 .doca-label {
   position: relative;
   z-index: 2;
-  font-size: 18px;
+  font-size: 1.7vmin;
   font-weight: 600;
-  letter-spacing: 12px;
+  letter-spacing: 1.2vmin;
   color: var(--branco-70);
 }
 
 .doca-numero {
   position: relative;
   z-index: 2;
-  font-size: 220px;
+  font-size: 22vmin;
   font-weight: 700;
   line-height: 1;
   color: var(--branco-100);
-  letter-spacing: -6px;
+  letter-spacing: -0.6vmin;
   text-shadow:
-    0 0 50px rgba(62, 242, 179, 0.55),
-    0 0 100px rgba(62, 242, 179, 0.30),
-    0 8px 30px rgba(0, 0, 0, 0.40);
+    0 0 5vmin rgba(62, 242, 179, 0.55),
+    0 0 10vmin rgba(62, 242, 179, 0.30),
+    0 0.8vmin 3vmin rgba(0, 0, 0, 0.40);
 }
 
 /* ────────── CENTRO ────────── */
@@ -175,7 +166,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 52px 40px 60px;
+  padding: 5vmin 4vmin 6vmin;
   text-align: center;
 }
 
@@ -184,22 +175,22 @@ body::after {
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  font-size: 18px;
+  gap: 1.4vmin;
+  font-size: 1.8vmin;
   font-weight: 600;
-  letter-spacing: 5px;
+  letter-spacing: 0.5vmin;
   color: var(--verde);
-  text-shadow: 0 0 12px var(--verde-glow);
+  text-shadow: 0 0 1.2vmin var(--verde-glow);
 }
 
 .status-dot {
-  width: 14px;
-  height: 14px;
+  width: 1.4vmin;
+  height: 1.4vmin;
   border-radius: 50%;
   background: var(--verde);
   box-shadow:
-    0 0 12px var(--verde),
-    0 0 28px rgba(62, 242, 179, 0.65);
+    0 0 1.2vmin var(--verde),
+    0 0 2.8vmin rgba(62, 242, 179, 0.65);
   animation: blink 2.2s ease-in-out infinite;
 }
 
@@ -212,66 +203,66 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 2.8vmin;
 }
 
 .rotulo {
-  font-size: 18px;
+  font-size: 1.8vmin;
   font-weight: 600;
-  letter-spacing: 10px;
+  letter-spacing: 1vmin;
   color: var(--branco-60);
 }
 
 .motorista-nome {
-  font-size: 130px;
+  font-size: 13vmin;
   font-weight: 800;
   line-height: 0.95;
-  letter-spacing: 4px;
+  letter-spacing: 0.4vmin;
   color: var(--branco-100);
   text-shadow:
-    0 0 50px rgba(255, 255, 255, 0.18),
-    0 0 90px rgba(62, 242, 179, 0.22),
-    0 8px 50px rgba(0, 0, 0, 0.40);
+    0 0 5vmin rgba(255, 255, 255, 0.18),
+    0 0 9vmin rgba(62, 242, 179, 0.22),
+    0 0.8vmin 5vmin rgba(0, 0, 0, 0.40);
   word-break: break-word;
   max-width: 100%;
 }
 
 .placa {
-  font-size: 38px;
+  font-size: 3.8vmin;
   font-weight: 600;
-  letter-spacing: 14px;
+  letter-spacing: 1.4vmin;
   color: var(--verde);
   opacity: 0.92;
-  text-shadow: 0 0 14px rgba(62, 242, 179, 0.32);
+  text-shadow: 0 0 1.4vmin rgba(62, 242, 179, 0.32);
 }
 
 .veiculo-bloco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 1vmin;
 }
 
 .veiculo-nome {
-  font-size: 40px;
+  font-size: 4vmin;
   font-weight: 700;
-  letter-spacing: 9px;
+  letter-spacing: 0.9vmin;
   color: var(--branco-70);
 }
 
 .veiculo-tipo {
-  font-size: 16px;
+  font-size: 1.6vmin;
   font-weight: 500;
-  letter-spacing: 8px;
+  letter-spacing: 0.8vmin;
   color: var(--branco-70);
 }
 
 /* ────────── HISTÓRICO ────────── */
 .historico {
-  padding: 26px 16px 26px 22px;
+  padding: 2.6vmin 1.6vmin 2.6vmin 2.2vmin;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1.8vmin;
 }
 
 .historico-header {
@@ -280,13 +271,13 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 6px;
+  padding-right: 0.6vmin;
 }
 
 .historico-header h2 {
-  font-size: 18px;
+  font-size: 1.8vmin;
   font-weight: 600;
-  letter-spacing: 7px;
+  letter-spacing: 0.7vmin;
   color: var(--branco-90);
 }
 
@@ -297,48 +288,48 @@ body::after {
   color: var(--verde);
   opacity: 0.75;
   display: flex;
-  padding: 6px;
-  border-radius: 8px;
+  padding: 0.6vmin;
+  border-radius: 0.8vmin;
   transition: opacity 0.2s, background 0.2s;
 }
 .edit-btn:hover {
   opacity: 1;
   background: rgba(62, 242, 179, 0.10);
 }
-.edit-btn svg { width: 22px; height: 22px; }
+.edit-btn svg { width: 2.2vmin; height: 2.2vmin; }
 
 .historico-lista {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 1.4vmin;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 0.6vmin;
   flex: 1;
   position: relative;
   z-index: 2;
 }
 
-.historico-lista::-webkit-scrollbar       { width: 5px; }
+.historico-lista::-webkit-scrollbar       { width: 0.5vmin; }
 .historico-lista::-webkit-scrollbar-track { background: transparent; }
 .historico-lista::-webkit-scrollbar-thumb {
   background: var(--verde-30);
-  border-radius: 4px;
+  border-radius: 0.4vmin;
 }
 
 .historico-item {
   position: relative;
-  border-radius: 18px;
-  padding: 16px 18px;
+  border-radius: 1.6vmin;
+  padding: 1.6vmin 1.8vmin;
   background: linear-gradient(
     145deg,
     rgba(28, 40, 50, 0.55) 0%,
     rgba(18, 28, 36, 0.48) 100%
   );
-  border: 1px solid rgba(62, 242, 179, 0.18);
+  border: 0.1vmin solid rgba(62, 242, 179, 0.18);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 6px 18px rgba(0, 0, 0, 0.30);
+    inset 0 0.1vmin 0 rgba(255, 255, 255, 0.05),
+    0 0.6vmin 1.8vmin rgba(0, 0, 0, 0.30);
   overflow: hidden;
 }
 
@@ -359,70 +350,106 @@ body::after {
 }
 
 .item-doca {
-  font-size: 20px;
+  font-size: 2vmin;
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.12vmin;
   color: var(--branco-90);
-  margin-bottom: 5px;
+  margin-bottom: 0.5vmin;
 }
 
 .item-info {
-  font-size: 14px;
+  font-size: 1.4vmin;
   font-weight: 500;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.15vmin;
   line-height: 1.4;
   color: var(--branco-60);
 }
 
-/* ────────── PORTRAIT (CELULAR / TABLET EM PÉ) ──────────
-   Em portrait não tem espaço pra layout 16:9 escalado, então
-   usamos um layout empilhado e adaptado à largura do device.            */
-@media (orientation: portrait) and (max-aspect-ratio: 9/10) {
+/* ════════════════════════════════════════════════════════════════
+   ADAPTAÇÕES POR PROPORÇÃO DO DISPOSITIVO
+   Detecta o aspect ratio real e ajusta colunas/espaços.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ULTRAWIDE (21:9, 32:9) — colunas laterais mais estreitas, centro destacado */
+@media (min-aspect-ratio: 2/1) {
+  .painel { grid-template-columns: 14vw 1fr 16vw; }
+  .doca-numero    { font-size: 20vmin; }
+  .motorista-nome { font-size: 12vmin; }
+}
+
+/* WIDE LANDSCAPE PADRÃO (16:9, 16:10) — default, sem override */
+
+/* STANDARD LANDSCAPE (3:2, 4:3) — colunas mais largas pra compensar */
+@media (orientation: landscape) and (max-aspect-ratio: 3/2) {
+  .painel { grid-template-columns: 20vw 1fr 22vw; }
+  .doca-numero    { font-size: 19vmin; }
+  .motorista-nome { font-size: 11vmin; }
+}
+
+/* QUASE QUADRADO (1:1) — layout mais compacto */
+@media (orientation: landscape) and (max-aspect-ratio: 6/5) {
+  .painel { grid-template-columns: 22vw 1fr 24vw; }
+  .doca-numero    { font-size: 16vmin; }
+  .motorista-nome { font-size: 9vmin; }
+}
+
+/* PORTRAIT (celular / tablet em pé) — layout EMPILHADO */
+@media (orientation: portrait) {
   html, body { overflow: auto; }
 
   .painel {
-    position: static;
-    transform: none;
-    top: auto;
-    left: auto;
-    width: 100%;
-    height: auto;
-    min-height: 100vh;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr;
-    gap: 12px;
-    padding: 12px;
+    gap: 2.5vmin;
+    padding: 2.5vmin;
+    height: auto;
+    min-height: 100vh;
   }
 
+  /* DOCA: faixa horizontal em cima */
   .doca {
     flex-direction: row;
-    gap: 20px;
-    padding: 22px;
+    gap: 4vmin;
+    padding: 4vmin;
     justify-content: center;
   }
-  .doca-label  { font-size: 14px; letter-spacing: 8px; }
-  .doca-numero { font-size: 80px; letter-spacing: -3px; }
+  .doca-label  { font-size: 2.8vmin; letter-spacing: 1.8vmin; }
+  .doca-numero { font-size: 18vmin;  letter-spacing: -0.8vmin; }
 
+  /* CENTRO ocupa a maior parte */
   .centro {
-    padding: 24px 18px 28px;
-    gap: 22px;
-    min-height: 50vh;
+    padding: 6vmin 4vmin 7vmin;
+    gap: 5vmin;
+    min-height: 55vh;
   }
-  .status         { font-size: 12px; letter-spacing: 3px; gap: 8px; }
-  .status-dot     { width: 8px; height: 8px; }
-  .rotulo         { font-size: 12px; letter-spacing: 6px; }
-  .motorista-nome { font-size: clamp(38px, 11vw, 64px); letter-spacing: 2px; }
-  .placa          { font-size: 22px; letter-spacing: 8px; }
-  .veiculo-nome   { font-size: 22px; letter-spacing: 5px; }
-  .veiculo-tipo   { font-size: 12px; letter-spacing: 4px; }
+  .status         { font-size: 2.4vmin; letter-spacing: 0.8vmin; gap: 1.8vmin; }
+  .status-dot     { width: 2vmin; height: 2vmin; }
+  .rotulo         { font-size: 2.4vmin; letter-spacing: 1.4vmin; }
+  .motorista-nome { font-size: 11vmin; letter-spacing: 0.4vmin; }
+  .placa          { font-size: 4.6vmin; letter-spacing: 1.6vmin; }
+  .veiculo-nome   { font-size: 4.6vmin; letter-spacing: 1vmin; }
+  .veiculo-tipo   { font-size: 2.4vmin; letter-spacing: 1vmin; }
 
+  /* HISTÓRICO em baixo (compacto) */
   .historico {
-    padding: 16px 12px 16px 14px;
-    gap: 12px;
-    max-height: 60vh;
+    padding: 3vmin 2vmin 3vmin 3vmin;
+    gap: 2vmin;
+    max-height: 50vh;
   }
-  .historico-header h2 { font-size: 12px; letter-spacing: 4px; }
-  .item-doca           { font-size: 14px; }
-  .item-info           { font-size: 11px; }
-  .historico-item      { padding: 12px 14px; border-radius: 12px; }
+  .historico-header h2 { font-size: 2.4vmin; letter-spacing: 1vmin; }
+  .historico-item      { padding: 2.4vmin 2.6vmin; border-radius: 2.4vmin; }
+  .item-doca           { font-size: 3vmin; margin-bottom: 0.6vmin; }
+  .item-info           { font-size: 2.1vmin; letter-spacing: 0.3vmin; }
+  .edit-btn svg        { width: 4vmin; height: 4vmin; }
+}
+
+/* PORTRAIT NARROW (celular em pé com tela pequena) — ajustes finos */
+@media (orientation: portrait) and (max-width: 480px) {
+  .doca-numero    { font-size: 22vmin; }
+  .motorista-nome { font-size: 13vmin; }
+  .placa          { font-size: 5.2vmin; letter-spacing: 1.8vmin; }
+  .veiculo-nome   { font-size: 5vmin; }
+  .veiculo-tipo   { font-size: 2.6vmin; }
+  .item-doca      { font-size: 3.6vmin; }
+  .item-info      { font-size: 2.4vmin; }
 }

@@ -6,12 +6,12 @@
 }
 
 .ctrl-wrap {
-  max-width: 920px;
+  max-width: min(960px, 100%);
   margin: 0 auto;
-  padding: 30px 22px 60px;
+  padding: clamp(16px, 3vw, 36px) clamp(12px, 2.5vw, 26px) clamp(40px, 6vw, 80px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(12px, 1.5vw, 22px);
 }
 
 /* header */
@@ -283,8 +283,27 @@
 @media (max-width: 640px) {
   .ctrl-grid { grid-template-columns: 1fr; }
   .ctrl-field-sm { max-width: none; }
-  .hist-item { grid-template-columns: 70px 1fr 36px; }
-  .hist-item .hist-status { grid-column: 1 / -1; }
+  .hist-item {
+    grid-template-columns: 64px 1fr 32px;
+    grid-template-rows: auto auto;
+    gap: 6px;
+  }
+  .hist-item .hist-motorista { grid-column: 2 / 3; grid-row: 1 / 2; }
+  .hist-item .hist-status    { grid-column: 1 / -1; grid-row: 2 / 3; }
+  .hist-item .hist-rm        { grid-column: 3 / 4; grid-row: 1 / 2; }
+
+  .ctrl-header { gap: 10px; }
+  .ctrl-header h1 { font-size: 1.3rem; letter-spacing: 4px; }
+  .ctrl-link { padding: 8px 12px; font-size: 0.66rem; }
+
+  .sync-acoes { flex-direction: column; align-items: stretch; }
+  .sync-acoes .btn { width: 100%; }
+  .sync-resultado { align-self: center; margin-top: 4px; }
+}
+
+@media (max-width: 380px) {
+  .ctrl-card { padding: 16px 14px 18px; border-radius: 16px; }
+  .ctrl-header h1 { font-size: 1.1rem; }
 }
 
 /* ──────────  SYNC NUVEM ────────── */

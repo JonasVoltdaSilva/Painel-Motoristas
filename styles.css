@@ -80,9 +80,9 @@ body::after {
 /* ────────── GRID ────────── */
 .painel {
   display: grid;
-  grid-template-columns: 230px 1fr 260px;
-  gap: 18px;
-  padding: 22px;
+  grid-template-columns: clamp(170px, 16vw, 320px) 1fr clamp(190px, 18vw, 340px);
+  gap: clamp(10px, 1.2vw, 22px);
+  padding: clamp(12px, 1.4vw, 26px);
   height: 100vh;
   width: 100vw;
 }
@@ -149,16 +149,16 @@ body::after {
 .doca-label {
   position: relative;
   z-index: 2;
-  font-size: 0.82rem;
+  font-size: clamp(0.65rem, 0.85vw, 1.05rem);
   font-weight: 600;
-  letter-spacing: 8px;
+  letter-spacing: clamp(5px, 0.6vw, 10px);
   color: var(--branco-70);
 }
 
 .doca-numero {
   position: relative;
   z-index: 2;
-  font-size: 8rem;
+  font-size: clamp(4rem, 9vw, 14rem);
   font-weight: 700;
   line-height: 1;
   color: var(--branco-100);
@@ -175,7 +175,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 32px 26px 36px;
+  padding: clamp(20px, 2.4vw, 48px) clamp(16px, 2vw, 40px);
   text-align: center;
 }
 
@@ -184,17 +184,17 @@ body::after {
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.78rem;
+  gap: clamp(7px, 0.7vw, 14px);
+  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
   font-weight: 600;
-  letter-spacing: 3px;
+  letter-spacing: clamp(2px, 0.25vw, 4px);
   color: var(--verde);
   text-shadow: 0 0 10px var(--verde-glow);
 }
 
 .status-dot {
-  width: 9px;
-  height: 9px;
+  width: clamp(7px, 0.7vw, 12px);
+  height: clamp(7px, 0.7vw, 12px);
   border-radius: 50%;
   background: var(--verde);
   box-shadow:
@@ -212,32 +212,33 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: clamp(8px, 1vw, 22px);
 }
 
 .rotulo {
-  font-size: 0.78rem;
+  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
   font-weight: 600;
-  letter-spacing: 6px;
+  letter-spacing: clamp(4px, 0.5vw, 9px);
   color: var(--branco-60);
 }
 
 .motorista-nome {
-  font-size: clamp(2.6rem, 5.5vw, 5.5rem);
+  font-size: clamp(2rem, 6vw, 9rem);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.2vw, 4px);
   color: var(--branco-100);
   text-shadow:
     0 0 24px rgba(255, 255, 255, 0.18),
     0 0 40px rgba(62, 242, 179, 0.20),
     0 6px 30px rgba(0, 0, 0, 0.35);
+  word-break: break-word;
 }
 
 .placa {
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 1.6vw, 2.4rem);
   font-weight: 600;
-  letter-spacing: 8px;
+  letter-spacing: clamp(4px, 0.7vw, 12px);
   color: var(--verde);
   opacity: 0.92;
   text-shadow: 0 0 10px rgba(62, 242, 179, 0.30);
@@ -247,29 +248,29 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: clamp(3px, 0.4vw, 8px);
 }
 
 .veiculo-nome {
-  font-size: 1.55rem;
+  font-size: clamp(1rem, 1.65vw, 2.6rem);
   font-weight: 700;
-  letter-spacing: 5px;
+  letter-spacing: clamp(3px, 0.4vw, 8px);
   color: var(--branco-70);
 }
 
 .veiculo-tipo {
-  font-size: 0.7rem;
+  font-size: clamp(0.6rem, 0.75vw, 1rem);
   font-weight: 500;
-  letter-spacing: 5px;
+  letter-spacing: clamp(3px, 0.4vw, 7px);
   color: var(--branco-70);
 }
 
 /* ────────── HISTÓRICO ────────── */
 .historico {
-  padding: 18px 12px 18px 16px;
+  padding: clamp(12px, 1.2vw, 24px) clamp(8px, 0.8vw, 16px) clamp(12px, 1.2vw, 24px) clamp(10px, 1vw, 20px);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: clamp(8px, 0.8vw, 16px);
 }
 
 .historico-header {
@@ -282,9 +283,9 @@ body::after {
 }
 
 .historico-header h2 {
-  font-size: 0.78rem;
+  font-size: clamp(0.62rem, 0.85vw, 1.05rem);
   font-weight: 600;
-  letter-spacing: 5px;
+  letter-spacing: clamp(3px, 0.4vw, 7px);
   color: var(--branco-90);
 }
 
@@ -357,7 +358,7 @@ body::after {
 }
 
 .item-doca {
-  font-size: 0.85rem;
+  font-size: clamp(0.78rem, 0.95vw, 1.2rem);
   font-weight: 700;
   letter-spacing: 0.8px;
   color: var(--branco-90);
@@ -365,9 +366,79 @@ body::after {
 }
 
 .item-info {
-  font-size: 0.62rem;
+  font-size: clamp(0.58rem, 0.72vw, 0.9rem);
   font-weight: 500;
   letter-spacing: 1px;
   line-height: 1.4;
   color: var(--branco-60);
+}
+
+/* ────────── RESPONSIVO: TABLET/CELULAR PAISAGEM ────────── */
+@media (max-width: 900px) and (orientation: landscape) {
+  .painel {
+    grid-template-columns: clamp(110px, 18vw, 180px) 1fr clamp(140px, 22vw, 200px);
+    gap: 10px;
+    padding: 12px;
+  }
+}
+
+/* ────────── RESPONSIVO: CELULAR PORTRAIT ────────── */
+@media (max-width: 720px) and (orientation: portrait) {
+  html, body { overflow: auto; }
+
+  .painel {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 12px;
+    padding: 12px;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .doca {
+    padding: 24px 16px;
+    flex-direction: row;
+    gap: 18px;
+    justify-content: center;
+  }
+  .doca-label {
+    font-size: 0.9rem;
+    letter-spacing: 6px;
+  }
+  .doca-numero {
+    font-size: 4.5rem;
+    letter-spacing: -2px;
+  }
+
+  .centro {
+    padding: 24px 18px 28px;
+    gap: 22px;
+    min-height: 60vh;
+  }
+  .motorista-nome { font-size: clamp(2.2rem, 9vw, 3.6rem); }
+  .placa          { font-size: 1.2rem; letter-spacing: 5px; }
+  .veiculo-nome   { font-size: 1.2rem; letter-spacing: 4px; }
+  .veiculo-tipo   { font-size: 0.7rem; letter-spacing: 3px; }
+
+  .historico {
+    padding: 14px 12px 14px 14px;
+    max-height: 40vh;
+  }
+  .historico-header h2 { font-size: 0.78rem; letter-spacing: 4px; }
+  .item-doca { font-size: 0.92rem; }
+  .item-info { font-size: 0.68rem; }
+}
+
+/* ────────── RESPONSIVO: TV / TELÃO (4K+) ────────── */
+@media (min-width: 2200px) {
+  .painel {
+    gap: 28px;
+    padding: 30px;
+  }
+}
+
+/* tela muito estreita e baixa (fallback extremo) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .doca-numero   { font-size: clamp(3rem, 8vw, 6rem); }
+  .motorista-nome { font-size: clamp(1.8rem, 5vw, 3.5rem); }
 }

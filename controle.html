@@ -62,27 +62,53 @@
       <div class="ctrl-card-header">
         <h2>
           <span class="sync-indicador" id="sync-led"></span>
-          Sincronizar com outro dispositivo
+          Conectar dispositivos
         </h2>
         <span class="sync-resultado" id="sync-resultado"></span>
       </div>
 
       <p class="sync-desc" id="sync-desc">Conectando à nuvem...</p>
 
-      <div class="sync-form">
-        <label class="ctrl-field ctrl-field-wide">
-          <span>Link para abrir no monitor / PC</span>
-          <input type="text" id="link-painel-share" readonly />
-        </label>
-        <div class="sync-acoes">
-          <button class="btn" id="copiar-link" type="button">Copiar link do painel</button>
-          <button class="btn btn-ghost" id="copiar-controle" type="button">Copiar link do controle</button>
+      <div class="sync-grid">
+        <!-- QR Code -->
+        <div class="sync-qr-box">
+          <div class="sync-qr-wrap">
+            <img id="qr-img" alt="QR Code" />
+          </div>
+          <p class="sync-qr-label">Aponte a câmera do outro aparelho para sincronizar</p>
         </div>
-        <p class="sync-tip">
-          📌 Abra o <b>link do painel</b> no PC/TV pra exibir os dados.<br>
-          📲 Abra o <b>link do controle</b> em qualquer outro dispositivo &mdash; precisa da senha pra editar.
-        </p>
+
+        <!-- Ações -->
+        <div class="sync-info">
+          <label class="ctrl-field ctrl-field-wide">
+            <span>Link do painel</span>
+            <input type="text" id="link-painel-share" readonly />
+          </label>
+
+          <div class="sync-acoes">
+            <button class="btn" id="copiar-link" type="button">📋 Copiar link</button>
+            <button class="btn btn-ghost" id="compartilhar-link" type="button">📤 Compartilhar</button>
+          </div>
+
+          <details class="sync-conectar">
+            <summary>Já tenho um código de outro dispositivo</summary>
+            <div class="sync-conectar-form">
+              <input
+                type="text"
+                id="codigo-input"
+                placeholder="Cole o link ou código aqui"
+                autocomplete="off"
+              />
+              <button class="btn btn-sm" id="usar-codigo" type="button">Conectar</button>
+            </div>
+          </details>
+        </div>
       </div>
+
+      <p class="sync-tip">
+        📌 Abra o <b>link do painel</b> no PC/TV pra exibir os dados.<br>
+        🔄 Tudo que mudar aqui aparece lá em até <b>2.5 segundos</b> e vice-versa.
+      </p>
     </section>
 
     <!-- ATUAL -->
@@ -377,10 +403,15 @@
       const idAtual = obterSyncId();
       if (idAtual) {
         ledEl.className = "sync-indicador on";
-        descSyncEl.innerHTML = `Sincronizado: <code>${idAtual.substring(0, 10)}…</code>`;
+        descSyncEl.innerHTML = `Sincronizado &middot; <code>${idAtual.substring(0, 12)}…</code>`;
         const link = linkCompartilhavel("index.html");
         linkInput.value = link || "";
         linkAnchor.href = link || "index.html";
+        // QR code via API pública (sem dependência)
+        const qr = document.getElementById("qr-img");
+        if (qr && link) {
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&bgcolor=0a1218&color=3EF2B3&data=${encodeURIComponent(link)}`;
+        }
         resEl.textContent = "✓ Conectado";
         resEl.className = "sync-resultado ok";
       } else {
@@ -390,6 +421,61 @@
         resEl.className = "sync-resultado";
       }
     }
+
+    // Compartilhar nativo (mobile)
+    document.getElementById("compartilhar-link").addEventListener("click", async () => {
+      const link = linkCompartilhavel("index.html");
+      if (!link) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Painel de Motoristas",
+            text: "Abra este link pra ver o painel sincronizado",
+            url: link,
+          });
+        } catch {}
+      } else {
+        copiar(link, document.getElementById("compartilhar-link"));
+      }
+    });
+
+    // Conectar via código/URL colado
+    document.getElementById("usar-codigo").addEventListener("click", async () => {
+      const input = document.getElementById("codigo-input");
+      let valor = (input.value || "").trim();
+      if (!valor) return;
+      // se for URL completa, extrai o ?id=
+      try {
+        const u = new URL(valor);
+        const idDaUrl = u.searchParams.get("id");
+        if (idDaUrl) valor = idDaUrl;
+      } catch {}
+      if (!/^[a-zA-Z0-9-]+$/.test(valor)) {
+        alert("Código inválido. Cole o link inteiro ou só o código.");
+        return;
+      }
+      // tenta carregar essa nuvem
+      localStorage.setItem(SYNC_ID_KEY, valor);
+      const url = new URL(window.location.href);
+      url.searchParams.set("id", valor);
+      history.replaceState({}, "", url);
+
+      const remoto = await carregarNuvem();
+      if (remoto) {
+        salvarLocal(remoto);
+        estado = remoto;
+        // se tem senha definida nessa nuvem, força login
+        deslogar();
+        atualizarLinkUI();
+        if (estado.senhaHash) {
+          mostrarOverlay();
+        } else {
+          preencher();
+        }
+      } else {
+        alert("Não consegui conectar com esse código. Verifique se está certo.");
+      }
+    });
 
     async function setupNuvem() {
       atualizarLinkUI();

@@ -12,39 +12,8 @@
 </head>
 <body class="ctrl-body">
 
-  <!-- ────────── OVERLAY DE LOGIN ────────── -->
-  <div class="auth-overlay" id="auth-overlay">
-    <form class="auth-card" id="auth-form" autocomplete="off">
-      <h1 id="auth-titulo">ENTRAR</h1>
-      <p id="auth-desc">Digite a senha para editar o painel</p>
-
-      <div class="auth-campos">
-        <input
-          type="password"
-          id="auth-senha"
-          placeholder="Senha"
-          autocomplete="current-password"
-          required
-        />
-        <input
-          type="password"
-          id="auth-senha2"
-          placeholder="Confirmar senha"
-          autocomplete="new-password"
-          style="display: none;"
-        />
-      </div>
-
-      <p class="auth-erro" id="auth-erro"></p>
-
-      <button type="submit" class="auth-btn" id="auth-btn">Entrar</button>
-
-      <a href="index.html" class="auth-voltar">&larr; Ver painel sem editar</a>
-    </form>
-  </div>
-
   <!-- ────────── INTERFACE DE CONTROLE ────────── -->
-  <main class="ctrl-wrap" id="ctrl-wrap" style="display: none;">
+  <main class="ctrl-wrap" id="ctrl-wrap">
     <header class="ctrl-header">
       <div>
         <h1>CONTROLE</h1>
@@ -52,7 +21,6 @@
       </div>
       <div class="ctrl-header-acoes">
         <a href="index.html" class="ctrl-link" id="link-painel">&larr; Ver painel</a>
-        <button class="ctrl-link ctrl-link-warn" id="btn-trocar-senha" type="button" title="Trocar senha">🔑</button>
         <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">⏻</button>
       </div>
     </header>
@@ -181,7 +149,7 @@
     </section>
 
     <div class="ctrl-acoes">
-      <button class="btn btn-ghost" id="resetar" type="button">Resetar dados (mantém senha)</button>
+      <button class="btn btn-ghost" id="resetar" type="button">Resetar dados</button>
       <span class="ctrl-status" id="ctrl-status">Salvo automaticamente</span>
     </div>
   </main>
@@ -189,106 +157,13 @@
   <script src="script.js"></script>
   <script>
     // ════════════════════════════════════════════════════
-    // FLUXO DE AUTENTICAÇÃO
+    // ESTADO
     // ════════════════════════════════════════════════════
-    let estado          = carregar();
-    let modoTrocarSenha = false;
-
-    const overlayEl = document.getElementById("auth-overlay");
-    const formAuth  = document.getElementById("auth-form");
-    const tituloEl  = document.getElementById("auth-titulo");
-    const descEl    = document.getElementById("auth-desc");
-    const senhaEl   = document.getElementById("auth-senha");
-    const senha2El  = document.getElementById("auth-senha2");
-    const btnAuthEl = document.getElementById("auth-btn");
-    const erroEl    = document.getElementById("auth-erro");
-    const ctrlWrap  = document.getElementById("ctrl-wrap");
-
-    function configurarOverlay() {
-      // Decide entre: setup inicial / login / trocar senha
-      if (modoTrocarSenha) {
-        tituloEl.textContent = "TROCAR SENHA";
-        descEl.textContent   = "Defina uma nova senha";
-        senha2El.style.display = "block";
-        senhaEl.placeholder  = "Nova senha";
-        btnAuthEl.textContent = "Salvar nova senha";
-      } else if (!estado.senhaHash) {
-        tituloEl.textContent = "CRIAR SENHA";
-        descEl.textContent   = "Primeira vez aqui — defina uma senha para proteger as edições. Todo mundo que for editar precisa dela.";
-        senha2El.style.display = "block";
-        senhaEl.placeholder  = "Senha";
-        btnAuthEl.textContent = "Criar senha";
-      } else {
-        tituloEl.textContent = "ENTRAR";
-        descEl.textContent   = "Digite a senha para editar o painel";
-        senha2El.style.display = "none";
-        senhaEl.placeholder  = "Senha";
-        btnAuthEl.textContent = "Entrar";
-      }
-      erroEl.textContent = "";
-      senhaEl.value = "";
-      senha2El.value = "";
-      setTimeout(() => senhaEl.focus(), 50);
-    }
-
-    function mostrarOverlay() {
-      configurarOverlay();
-      overlayEl.classList.add("visivel");
-      ctrlWrap.style.display = "none";
-    }
-
-    function esconderOverlay() {
-      overlayEl.classList.remove("visivel");
-      ctrlWrap.style.display = "";
-    }
-
-    formAuth.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const senha = senhaEl.value.trim();
-      if (senha.length < 4) {
-        erroEl.textContent = "A senha precisa ter pelo menos 4 caracteres.";
-        return;
-      }
-
-      // SETUP INICIAL ou TROCAR SENHA
-      if (modoTrocarSenha || !estado.senhaHash) {
-        const senha2 = senha2El.value.trim();
-        if (senha !== senha2) {
-          erroEl.textContent = "As senhas não conferem.";
-          return;
-        }
-        const hash = await hashSenha(senha);
-        estado.senhaHash = hash;
-        salvar(estado);
-        logar(hash);
-        modoTrocarSenha = false;
-        esconderOverlay();
-        preencher();
-        return;
-      }
-
-      // LOGIN
-      const hash = await hashSenha(senha);
-      if (hash !== estado.senhaHash) {
-        erroEl.textContent = "Senha incorreta.";
-        senhaEl.value = "";
-        senhaEl.focus();
-        return;
-      }
-      logar(hash);
-      esconderOverlay();
-      preencher();
-    });
+    let estado = carregar();
 
     document.getElementById("btn-sair").addEventListener("click", () => {
-      if (!confirm("Sair? Você precisará da senha pra editar de novo.")) return;
-      deslogar();
-      mostrarOverlay();
-    });
-
-    document.getElementById("btn-trocar-senha").addEventListener("click", () => {
-      modoTrocarSenha = true;
-      mostrarOverlay();
+      if (!confirm("Recarregar a página?")) return;
+      location.reload();
     });
 
     // ════════════════════════════════════════════════════
@@ -379,12 +254,10 @@
     });
 
     document.getElementById("resetar").addEventListener("click", () => {
-      if (!confirm("Resetar os dados (motorista, placa, histórico…)? A senha continua a mesma.")) return;
-      const senhaHashAtual = estado.senhaHash;
-      const idSync         = obterSyncId();
+      if (!confirm("Resetar os dados (motorista, placa, histórico…)?")) return;
+      const idSync = obterSyncId();
       localStorage.removeItem(STORAGE_KEY);
       estado = carregar();
-      estado.senhaHash = senhaHashAtual;
       salvar(estado);
       preencher();
       sinalizarSalvo();
@@ -464,14 +337,8 @@
       if (remoto) {
         salvarLocal(remoto);
         estado = remoto;
-        // se tem senha definida nessa nuvem, força login
-        deslogar();
         atualizarLinkUI();
-        if (estado.senhaHash) {
-          mostrarOverlay();
-        } else {
-          preencher();
-        }
+        preencher();
       } else {
         alert("Não consegui conectar com esse código. Verifique se está certo.");
       }
@@ -483,13 +350,7 @@
       if (r) {
         estado = carregar();
         atualizarLinkUI();
-        // recheca auth com o estado atualizado da nuvem
-        if (estado.senhaHash && !estaLogado(estado)) {
-          mostrarOverlay();
-        } else {
-          esconderOverlay();
-          preencher();
-        }
+        preencher();
       } else {
         descSyncEl.textContent = "Sem conexão com a nuvem — alterações ficam apenas neste navegador";
         resEl.textContent = "✗ Sem conexão";
@@ -529,28 +390,13 @@
     // ════════════════════════════════════════════════════
     // INIT
     // ════════════════════════════════════════════════════
-    // Inscrição em mudanças (mesmo deslogado, sincroniza o estado)
+    // Inscrição em mudanças
     inscrever((novo) => {
       estado = novo;
-      // se a senha mudou em outro dispositivo, força login de novo
-      if (estado.senhaHash && !estaLogado(estado)) {
-        mostrarOverlay();
-        return;
-      }
       preencher();
     });
 
-    // Decide se mostra login ou interface direto
-    if (!estado.senhaHash) {
-      // Setup inicial (sem senha definida ainda)
-      mostrarOverlay();
-    } else if (!estaLogado(estado)) {
-      mostrarOverlay();
-    } else {
-      esconderOverlay();
-      preencher();
-    }
-
+    preencher();
     setupNuvem();
   </script>
 </body>

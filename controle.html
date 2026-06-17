@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle &middot; Painel de Motoristas</title>
+  <title>Controle · Painel de Motoristas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -12,81 +12,62 @@
 </head>
 <body class="ctrl-body">
 
-  <!-- ────────── INTERFACE DE CONTROLE ────────── -->
+  <!-- ── OVERLAY DE CONFIGURAÇÃO INICIAL ── -->
+  <div class="auth-overlay" id="setup-overlay">
+    <div class="auth-card">
+      <h1>CONFIGURAÇÃO</h1>
+      <p class="auth-desc">Primeira vez? Defina as senhas de acesso ao painel.</p>
+      <div class="auth-campos">
+        <input type="password" id="setup-admin-pass" placeholder="Senha do administrador (dpa)" autocomplete="new-password" />
+        <input type="password" id="setup-viewer-pass" placeholder="Senha do visualizador" autocomplete="new-password" />
+      </div>
+      <p class="auth-erro" id="setup-erro"></p>
+      <button class="auth-btn" id="setup-btn" type="button">SALVAR E ENTRAR</button>
+      <p class="auth-desc" style="margin-top:14px;font-size:0.62rem">
+        Admin: usuário <b style="color:var(--verde)">dpa</b> &nbsp;·&nbsp;
+        Visualizador: usuário <b style="color:var(--verde)">visualizar</b>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── OVERLAY DE LOGIN ── -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <h1>CONTROLE</h1>
+      <p class="auth-desc">Acesso restrito a administradores</p>
+      <div class="auth-campos">
+        <input type="text" id="auth-usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" />
+        <input type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password" />
+      </div>
+      <p class="auth-erro" id="auth-erro"></p>
+      <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
+      <a href="index.html" class="auth-voltar">← Voltar ao painel</a>
+    </div>
+  </div>
+
+  <!-- ── PAINEL DE CONTROLE ── -->
   <main class="ctrl-wrap" id="ctrl-wrap">
     <header class="ctrl-header">
       <div>
-        <h1>CONTROLE</h1>
-        <p>Edite os campos &mdash; o painel atualiza ao vivo</p>
+        <h1>CONTROLE
+          <span class="firebase-dot" id="firebase-dot" title="Sync desconectado"></span>
+        </h1>
+        <p>Edite os campos — o painel atualiza ao vivo</p>
       </div>
       <div class="ctrl-header-acoes">
-        <a href="index.html" class="ctrl-link" id="link-painel">&larr; Ver painel</a>
+        <a href="index.html" class="ctrl-link" target="_blank">↗ Ver painel</a>
         <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">⏻</button>
       </div>
     </header>
 
-    <!-- COMPARTILHAR -->
-    <section class="ctrl-card ctrl-sync">
-      <div class="ctrl-card-header">
-        <h2>
-          <span class="sync-indicador" id="sync-led"></span>
-          Conectar dispositivos
-        </h2>
-        <span class="sync-resultado" id="sync-resultado"></span>
-      </div>
-
-      <p class="sync-desc" id="sync-desc">Conectando à nuvem...</p>
-
-      <div class="sync-grid">
-        <!-- QR Code -->
-        <div class="sync-qr-box">
-          <div class="sync-qr-wrap">
-            <img id="qr-img" alt="QR Code" />
-          </div>
-          <p class="sync-qr-label">Aponte a câmera do outro aparelho para sincronizar</p>
-        </div>
-
-        <!-- Ações -->
-        <div class="sync-info">
-          <label class="ctrl-field ctrl-field-wide">
-            <span>Link do painel</span>
-            <input type="text" id="link-painel-share" readonly />
-          </label>
-
-          <div class="sync-acoes">
-            <button class="btn" id="copiar-link" type="button">📋 Copiar link</button>
-            <button class="btn btn-ghost" id="compartilhar-link" type="button">📤 Compartilhar</button>
-          </div>
-
-          <details class="sync-conectar">
-            <summary>Já tenho um código de outro dispositivo</summary>
-            <div class="sync-conectar-form">
-              <input
-                type="text"
-                id="codigo-input"
-                placeholder="Cole o link ou código aqui"
-                autocomplete="off"
-              />
-              <button class="btn btn-sm" id="usar-codigo" type="button">Conectar</button>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <p class="sync-tip">
-        📌 Abra o <b>link do painel</b> no PC/TV pra exibir os dados.<br>
-        🔄 Tudo que mudar aqui aparece lá em até <b>2.5 segundos</b> e vice-versa.
-      </p>
-    </section>
-
-    <!-- ATUAL -->
+    <!-- MOTORISTA ATUAL -->
     <section class="ctrl-card">
       <h2>Motorista atual</h2>
-
       <div class="ctrl-grid">
+
         <label class="ctrl-field ctrl-field-sm">
           <span>Doca</span>
-          <input type="text" id="in-doca" maxlength="3" />
+          <input type="text" id="in-doca" maxlength="3" inputmode="numeric" />
         </label>
 
         <label class="ctrl-field">
@@ -104,17 +85,17 @@
 
         <label class="ctrl-field ctrl-field-wide">
           <span>Nome do motorista</span>
-          <input type="text" id="in-motorista" placeholder="Ex: ARIANA GRANDE" />
+          <input type="text" id="in-motorista" placeholder="Ex: JOÃO SILVA" autocapitalize="characters" />
         </label>
 
         <label class="ctrl-field">
           <span>Placa</span>
-          <input type="text" id="in-placa" placeholder="Ex: 6969-ARI" />
+          <input type="text" id="in-placa" placeholder="Ex: ABC-1234" autocapitalize="characters" />
         </label>
 
         <label class="ctrl-field">
           <span>Veículo (nome / código)</span>
-          <input type="text" id="in-veiculo" placeholder="Ex: POP STAR" />
+          <input type="text" id="in-veiculo" placeholder="Ex: TRUCK 01" autocapitalize="characters" />
         </label>
 
         <label class="ctrl-field">
@@ -136,6 +117,7 @@
             <span class="slider"></span>
           </div>
         </label>
+
       </div>
     </section>
 
@@ -148,70 +130,146 @@
       <div id="hist-lista" class="hist-lista"></div>
     </section>
 
+    <!-- AÇÕES -->
     <div class="ctrl-acoes">
       <button class="btn btn-ghost" id="resetar" type="button">Resetar dados</button>
-      <span class="ctrl-status" id="ctrl-status">Salvo automaticamente</span>
+      <span class="ctrl-status" id="ctrl-status">Pronto</span>
     </div>
   </main>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
   <script>
     // ════════════════════════════════════════════════════
-    // ESTADO
+    // AUTH ADMIN
+    // ════════════════════════════════════════════════════
+    async function tentarLoginAdmin() {
+      const usuario = document.getElementById("auth-usuario").value;
+      const senha   = document.getElementById("auth-senha").value;
+      const err     = document.getElementById("auth-erro");
+      const tipo    = await verificarLogin(usuario, senha);
+      if (tipo === "admin") {
+        salvarSessao("admin");
+        document.getElementById("auth-overlay").classList.remove("visivel");
+        iniciarControle();
+      } else {
+        err.textContent = tipo === "viewer" ? "Acesso negado — use credenciais de administrador" : "Usuário ou senha incorretos";
+        document.getElementById("auth-senha").value = "";
+        document.getElementById("auth-senha").focus();
+      }
+    }
+
+    function mostrarLogin() {
+      document.getElementById("auth-overlay").classList.add("visivel");
+      document.getElementById("auth-btn").addEventListener("click", tentarLoginAdmin);
+      document.getElementById("auth-usuario").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("auth-senha").focus();
+      });
+      document.getElementById("auth-senha").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") tentarLoginAdmin();
+      });
+      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
+    }
+
+    function mostrarSetup() {
+      document.getElementById("setup-overlay").classList.add("visivel");
+      document.getElementById("setup-btn").addEventListener("click", async () => {
+        const adminPass  = document.getElementById("setup-admin-pass").value;
+        const viewerPass = document.getElementById("setup-viewer-pass").value;
+        const err        = document.getElementById("setup-erro");
+        if (!adminPass || !viewerPass) { err.textContent = "Preencha as duas senhas"; return; }
+        if (adminPass.length < 4 || viewerPass.length < 4) { err.textContent = "Mínimo 4 caracteres por senha"; return; }
+        await salvarConfig(adminPass, viewerPass);
+        salvarSessao("admin");
+        document.getElementById("setup-overlay").classList.remove("visivel");
+        iniciarControle();
+      });
+      document.getElementById("setup-admin-pass").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("setup-viewer-pass").focus();
+      });
+      document.getElementById("setup-viewer-pass").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("setup-btn").click();
+      });
+      setTimeout(() => document.getElementById("setup-admin-pass").focus(), 100);
+    }
+
+    (function initAuth() {
+      if (tipoSessao() === "admin") { iniciarControle(); return; }
+      precisaConfigurar().then(needsSetup => needsSetup ? mostrarSetup() : mostrarLogin());
+    })();
+
+    // ════════════════════════════════════════════════════
+    // CONTROLE
     // ════════════════════════════════════════════════════
     let estado = carregar();
 
-    document.getElementById("btn-sair").addEventListener("click", () => {
-      if (!confirm("Recarregar a página?")) return;
-      location.reload();
-    });
+    function iniciarControle() {
+      // Indicador Firebase
+      if (_firebaseAtivo && firebase?.database) {
+        firebase.database().ref(".info/connected").on("value", (snap) => {
+          const dot = document.getElementById("firebase-dot");
+          if (!dot) return;
+          const on = snap.val() === true;
+          dot.classList.toggle("on", on);
+          dot.title = on ? "Sync ativo" : "Sync desconectado";
+        });
+      }
 
-    // ════════════════════════════════════════════════════
-    // CONTROLE (edição)
-    // ════════════════════════════════════════════════════
-    const campos = {
-      "in-doca":       "doca",
-      "in-status":     "status",
-      "in-motorista":  "motorista",
-      "in-placa":      "placa",
-      "in-veiculo":    "veiculo",
-      "in-tipo":       "tipo",
+      preencher();
+      vincularCampos();
+      vincularHistorico();
+      vincularAcoes();
+
+      inscrever((novo) => { estado = novo; preencher(); });
+    }
+
+    // ── Campos principais ──
+    const CAMPOS = {
+      "in-doca":      "doca",
+      "in-status":    "status",
+      "in-motorista": "motorista",
+      "in-placa":     "placa",
+      "in-veiculo":   "veiculo",
+      "in-tipo":      "tipo",
     };
 
     function preencher() {
-      Object.entries(campos).forEach(([id, key]) => {
+      Object.entries(CAMPOS).forEach(([id, key]) => {
         const el = document.getElementById(id);
         if (el) el.value = estado[key] || "";
       });
       document.getElementById("in-paletizada").checked = !!estado.paletizada;
       renderHistorico();
-      atualizarLinkUI();
     }
 
-    Object.entries(campos).forEach(([id, key]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener("input", () => {
-        let valor = el.value;
-        if (key === "motorista" || key === "veiculo" || key === "placa") {
-          valor = valor.toUpperCase();
-          el.value = valor;
-        }
-        estado[key] = valor;
+    function vincularCampos() {
+      Object.entries(CAMPOS).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => {
+          let v = el.value;
+          if (["motorista", "veiculo", "placa"].includes(key)) {
+            v = v.toUpperCase();
+            el.value = v;
+          }
+          estado[key] = v;
+          salvar(estado);
+          sinalizarSalvo();
+        });
+      });
+      document.getElementById("in-paletizada").addEventListener("change", (e) => {
+        estado.paletizada = e.target.checked;
         salvar(estado);
         sinalizarSalvo();
       });
-    });
+    }
 
-    document.getElementById("in-paletizada").addEventListener("change", (e) => {
-      estado.paletizada = e.target.checked;
-      salvar(estado);
-      sinalizarSalvo();
-    });
-
+    // ── Histórico ──
     function renderHistorico() {
       const cont = document.getElementById("hist-lista");
-      cont.innerHTML = estado.historico.map((h, i) => `
+      cont.innerHTML = (estado.historico || []).map((h, i) => `
         <div class="hist-item">
           <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca}"      placeholder="01" />
           <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista}" placeholder="NOME" />
@@ -222,13 +280,9 @@
 
       cont.querySelectorAll("input").forEach((inp) => {
         inp.addEventListener("input", () => {
-          const i = +inp.dataset.i;
-          const k = inp.dataset.k;
+          const i = +inp.dataset.i, k = inp.dataset.k;
           let v = inp.value;
-          if (k === "motorista" || k === "status") {
-            v = v.toUpperCase();
-            inp.value = v;
-          }
+          if (k === "motorista" || k === "status") { v = v.toUpperCase(); inp.value = v; }
           estado.historico[i][k] = v;
           salvar(estado);
           sinalizarSalvo();
@@ -237,8 +291,7 @@
 
       cont.querySelectorAll(".hist-rm").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const i = +btn.dataset.i;
-          estado.historico.splice(i, 1);
+          estado.historico.splice(+btn.dataset.i, 1);
           salvar(estado);
           renderHistorico();
           sinalizarSalvo();
@@ -246,158 +299,46 @@
       });
     }
 
-    document.getElementById("add-historico").addEventListener("click", () => {
-      estado.historico.unshift({ doca: "", motorista: "", status: "AGUARDANDO MOTORISTA" });
-      salvar(estado);
-      renderHistorico();
-      sinalizarSalvo();
-    });
-
-    document.getElementById("resetar").addEventListener("click", () => {
-      if (!confirm("Resetar os dados (motorista, placa, histórico…)?")) return;
-      const idSync = obterSyncId();
-      localStorage.removeItem(STORAGE_KEY);
-      estado = carregar();
-      salvar(estado);
-      preencher();
-      sinalizarSalvo();
-    });
-
-    // ════════════════════════════════════════════════════
-    // SYNC LINKS
-    // ════════════════════════════════════════════════════
-    const ledEl     = document.getElementById("sync-led");
-    const descSyncEl= document.getElementById("sync-desc");
-    const resEl     = document.getElementById("sync-resultado");
-    const linkInput = document.getElementById("link-painel-share");
-    const linkAnchor= document.getElementById("link-painel");
-
-    function atualizarLinkUI() {
-      const idAtual = obterSyncId();
-      if (idAtual) {
-        ledEl.className = "sync-indicador on";
-        descSyncEl.innerHTML = `Sincronizado &middot; <code>${idAtual.substring(0, 12)}…</code>`;
-        const link = linkCompartilhavel("index.html");
-        linkInput.value = link || "";
-        linkAnchor.href = link || "index.html";
-        // QR code via API pública (sem dependência)
-        const qr = document.getElementById("qr-img");
-        if (qr && link) {
-          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&bgcolor=0a1218&color=3EF2B3&data=${encodeURIComponent(link)}`;
-        }
-        resEl.textContent = "✓ Conectado";
-        resEl.className = "sync-resultado ok";
-      } else {
-        ledEl.className = "sync-indicador off";
-        descSyncEl.textContent = "Conectando à nuvem...";
-        resEl.textContent = "";
-        resEl.className = "sync-resultado";
-      }
-    }
-
-    // Compartilhar nativo (mobile)
-    document.getElementById("compartilhar-link").addEventListener("click", async () => {
-      const link = linkCompartilhavel("index.html");
-      if (!link) return;
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: "Painel de Motoristas",
-            text: "Abra este link pra ver o painel sincronizado",
-            url: link,
-          });
-        } catch {}
-      } else {
-        copiar(link, document.getElementById("compartilhar-link"));
-      }
-    });
-
-    // Conectar via código/URL colado
-    document.getElementById("usar-codigo").addEventListener("click", async () => {
-      const input = document.getElementById("codigo-input");
-      let valor = (input.value || "").trim();
-      if (!valor) return;
-      // se for URL completa, extrai o ?id=
-      try {
-        const u = new URL(valor);
-        const idDaUrl = u.searchParams.get("id");
-        if (idDaUrl) valor = idDaUrl;
-      } catch {}
-      if (!/^[a-zA-Z0-9-]+$/.test(valor)) {
-        alert("Código inválido. Cole o link inteiro ou só o código.");
-        return;
-      }
-      // tenta carregar essa nuvem
-      localStorage.setItem(SYNC_ID_KEY, valor);
-      const url = new URL(window.location.href);
-      url.searchParams.set("id", valor);
-      history.replaceState({}, "", url);
-
-      const remoto = await carregarNuvem();
-      if (remoto) {
-        salvarLocal(remoto);
-        estado = remoto;
-        atualizarLinkUI();
-        preencher();
-      } else {
-        alert("Não consegui conectar com esse código. Verifique se está certo.");
-      }
-    });
-
-    async function setupNuvem() {
-      atualizarLinkUI();
-      const r = await inicializarNuvem();
-      if (r) {
-        estado = carregar();
-        atualizarLinkUI();
-        preencher();
-      } else {
-        descSyncEl.textContent = "Sem conexão com a nuvem — alterações ficam apenas neste navegador";
-        resEl.textContent = "✗ Sem conexão";
-        resEl.className = "sync-resultado erro";
-      }
-    }
-
-    function copiar(texto, botao) {
-      if (!texto) return;
-      navigator.clipboard?.writeText(texto).then(() => {
-        const original = botao.textContent;
-        botao.textContent = "✓ Copiado!";
-        setTimeout(() => { botao.textContent = original; }, 1600);
+    function vincularHistorico() {
+      document.getElementById("add-historico").addEventListener("click", () => {
+        if (!estado.historico) estado.historico = [];
+        estado.historico.unshift({ doca: "", motorista: "", status: "AGUARDANDO MOTORISTA" });
+        salvar(estado);
+        renderHistorico();
+        sinalizarSalvo();
       });
     }
 
-    document.getElementById("copiar-link").addEventListener("click", (e) => {
-      copiar(linkCompartilhavel("index.html"), e.target);
-    });
-    document.getElementById("copiar-controle").addEventListener("click", (e) => {
-      copiar(linkCompartilhavel("controle.html"), e.target);
-    });
+    // ── Ações ──
+    function vincularAcoes() {
+      document.getElementById("resetar").addEventListener("click", () => {
+        if (!confirm("Resetar todos os dados?")) return;
+        localStorage.removeItem("painel-motoristas:v1");
+        estado = carregar();
+        salvar(estado);
+        preencher();
+        sinalizarSalvo();
+      });
 
-    // indicador salvo
-    let timer;
+      document.getElementById("btn-sair").addEventListener("click", () => {
+        if (!confirm("Sair da sessão admin?")) return;
+        deslogar();
+        location.href = "index.html";
+      });
+    }
+
+    // ── Feedback de salvamento ──
+    let _timer;
     function sinalizarSalvo() {
       const el = document.getElementById("ctrl-status");
       el.textContent = "Salvando…";
       el.classList.add("salvando");
-      clearTimeout(timer);
-      timer = setTimeout(() => {
+      clearTimeout(_timer);
+      _timer = setTimeout(() => {
         el.textContent = "Salvo ✓";
         el.classList.remove("salvando");
-      }, 400);
+      }, 500);
     }
-
-    // ════════════════════════════════════════════════════
-    // INIT
-    // ════════════════════════════════════════════════════
-    // Inscrição em mudanças
-    inscrever((novo) => {
-      estado = novo;
-      preencher();
-    });
-
-    preencher();
-    setupNuvem();
   </script>
 </body>
 </html>

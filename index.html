@@ -10,80 +10,146 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="painel">
+
+  <!-- ── OVERLAY DE LOGIN ── -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <h1>PAINEL</h1>
+      <p class="auth-desc">Digite a senha para visualizar</p>
+      <div class="auth-campos">
+        <input type="text" id="auth-usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" />
+        <input type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password" />
+      </div>
+      <p class="auth-erro" id="auth-erro"></p>
+      <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
+    </div>
+  </div>
+
+  <!-- ── PAINEL PRINCIPAL ── -->
+  <main class="painel" id="painel">
 
     <!-- DOCA -->
     <section class="card doca">
       <div class="doca-label">DOCA</div>
-      <div class="doca-numero" id="campo-doca">01</div>
+      <div class="doca-numero" id="campo-doca">—</div>
     </section>
 
     <!-- CENTRO -->
     <section class="card centro">
-      <div class="status">
+      <div class="status" id="status-badge">
         <span class="status-dot"></span>
-        <span id="campo-status">CARREGAMENTO FINALIZADO</span>
+        <span id="campo-status">AGUARDANDO MOTORISTA</span>
       </div>
 
       <div class="motorista-bloco">
         <p class="rotulo">MOTORISTA</p>
-        <h1 class="motorista-nome" id="campo-motorista">ARIANA GRANDE</h1>
-        <p class="placa" id="campo-placa">6969-ARI</p>
+        <h1 class="motorista-nome" id="campo-motorista">—</h1>
+        <p class="placa" id="campo-placa"></p>
       </div>
 
       <div class="veiculo-bloco">
-        <p class="veiculo-nome" id="campo-veiculo">POP STAR</p>
-        <p class="veiculo-tipo" id="campo-tipo">CARRETA &middot; PALETIZADA</p>
+        <p class="veiculo-nome" id="campo-veiculo"></p>
+        <p class="veiculo-tipo" id="campo-tipo"></p>
       </div>
     </section>
 
     <!-- HISTÓRICO -->
     <aside class="historico">
       <header class="historico-header">
-        <h2>HISTORICO</h2>
-        <a href="controle.html" class="edit-btn" aria-label="Abrir controle" title="Abrir controle">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        <h2>HISTÓRICO</h2>
+        <a href="controle.html" class="edit-btn" id="edit-btn" aria-label="Abrir controle" title="Controle" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+          </svg>
         </a>
       </header>
-
       <ul class="historico-lista" id="campo-historico"></ul>
     </aside>
 
   </main>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
   <script>
-    // ────────── RENDER ──────────
+    // ── CLASSIFICAR STATUS ──
+    function classificarStatus(s) {
+      const u = (s || "").toUpperCase();
+      if (u.includes("FINALIZADO") || u.includes("LIBERADO"))              return "finalizado";
+      if (u.includes("AGUARDANDO"))                                         return "aguardando";
+      if (u.includes("CONFERÊNCIA") || u.includes("CONFERENCIA"))          return "conferencia";
+      if (u.includes("CARREGAMENTO") || u.includes("DESCARREGAMENTO"))     return "carregando";
+      return "";
+    }
+
+    // ── RENDER ──
     function render(estado) {
-      document.getElementById("campo-doca").textContent      = estado.doca;
-      document.getElementById("campo-status").textContent    = estado.status;
-      document.getElementById("campo-motorista").textContent = estado.motorista;
-      document.getElementById("campo-placa").textContent     = estado.placa;
-      document.getElementById("campo-veiculo").textContent   = estado.veiculo;
+      document.getElementById("campo-doca").textContent      = estado.doca      || "—";
+      document.getElementById("campo-status").textContent    = estado.status    || "";
+      document.getElementById("campo-motorista").textContent = estado.motorista || "—";
+      document.getElementById("campo-placa").textContent     = estado.placa     || "";
+      document.getElementById("campo-veiculo").textContent   = estado.veiculo   || "";
 
       const sufixo = estado.paletizada ? " · PALETIZADA" : " · NÃO PALETIZADA";
-      document.getElementById("campo-tipo").textContent = estado.tipo + sufixo;
+      document.getElementById("campo-tipo").textContent = estado.tipo ? (estado.tipo + sufixo) : "";
+
+      document.getElementById("status-badge").dataset.status = classificarStatus(estado.status);
 
       const lista = document.getElementById("campo-historico");
-      lista.innerHTML = estado.historico.map((h) => `
-        <li class="historico-item">
+      lista.innerHTML = (estado.historico || []).map((h) => `
+        <li class="historico-item" data-status="${classificarStatus(h.status)}">
           <p class="item-doca">Doca ${h.doca}</p>
           <p class="item-info">${h.motorista} – ${h.status}</p>
         </li>
       `).join("");
     }
 
-    // 1. render imediato com o que tem local
-    render(carregar());
-    // 2. inscrever em mudanças (BroadcastChannel + storage + polling)
-    inscrever(render);
-    // 3. tentar puxar versão mais nova da nuvem (se já existe sync ID)
-    (async () => {
-      const remoto = await carregarNuvem();
-      if (remoto) {
-        salvarLocal(remoto);
-        render(remoto);
+    // ── AUTH ──
+    const isKiosk = new URLSearchParams(location.search).has("kiosk");
+
+    function iniciarPainel() {
+      if (tipoSessao() === "admin") {
+        document.getElementById("edit-btn").style.display = "";
       }
+      render(carregar());
+      inscrever(render);
+    }
+
+    async function tentarLogin() {
+      const usuario = document.getElementById("auth-usuario").value;
+      const senha   = document.getElementById("auth-senha").value;
+      const err     = document.getElementById("auth-erro");
+      const tipo    = await verificarLogin(usuario, senha);
+      if (tipo) {
+        salvarSessao(tipo);
+        document.getElementById("auth-overlay").classList.remove("visivel");
+        iniciarPainel();
+      } else {
+        err.textContent = "Usuário ou senha incorretos";
+        document.getElementById("auth-senha").value = "";
+        document.getElementById("auth-senha").focus();
+      }
+    }
+
+    (function init() {
+      if (isKiosk || tipoSessao()) { iniciarPainel(); return; }
+      precisaConfigurar().then(needsSetup => {
+        if (needsSetup) {
+          // Redireciona para controle onde o setup acontece
+          location.href = "controle.html";
+          return;
+        }
+        document.getElementById("auth-overlay").classList.add("visivel");
+        document.getElementById("auth-btn").addEventListener("click", tentarLogin);
+        document.getElementById("auth-usuario").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") document.getElementById("auth-senha").focus();
+        });
+        document.getElementById("auth-senha").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") tentarLogin();
+        });
+        setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
+      });
     })();
   </script>
 </body>

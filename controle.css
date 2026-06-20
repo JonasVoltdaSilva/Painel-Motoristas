@@ -292,6 +292,34 @@
 }
 .btn-ghost:hover { background: rgba(255, 255, 255, 0.04); color: var(--branco-90); }
 
+/* tabs de doca */
+.ctrl-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ctrl-tab {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--branco-60);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 40px;
+}
+.ctrl-tab.active {
+  color: var(--verde);
+  border-color: var(--verde-50);
+  background: rgba(62, 242, 179, 0.08);
+}
+.ctrl-tab:hover:not(.active) { color: var(--branco-90); border-color: rgba(255,255,255,0.20); }
+
 /* ações finais */
 .ctrl-acoes {
   display: flex;

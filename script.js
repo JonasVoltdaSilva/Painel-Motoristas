@@ -1,16 +1,24 @@
 // ────────── ESTADO PADRÃO ──────────
-const ESTADO_PADRAO = {
-  doca:       "01",
+const DOCA_PADRAO = {
   status:     "AGUARDANDO MOTORISTA",
   motorista:  "",
   placa:      "",
   veiculo:    "",
   tipo:       "CARRETA",
   paletizada: false,
-  historico:  [],
 };
 
-const STORAGE_KEY = "painel-motoristas:v1";
+const ESTADO_PADRAO = {
+  docas: {
+    "1": { ...DOCA_PADRAO },
+    "2": { ...DOCA_PADRAO },
+    "3": { ...DOCA_PADRAO },
+    "4": { ...DOCA_PADRAO },
+  },
+  historico: [],
+};
+
+const STORAGE_KEY = "painel-motoristas:v2";
 const SESSION_KEY = "painel-motoristas:session";
 const CANAL       = "painel-motoristas";
 
@@ -34,13 +42,20 @@ function tipoSessao()       { return sessionStorage.getItem(SESSION_KEY); }
 function deslogar()         { sessionStorage.removeItem(SESSION_KEY); }
 
 // ────────── ARMAZENAMENTO LOCAL ──────────
+function normalizarEstado(raw) {
+  const docas = {};
+  ["1", "2", "3", "4"].forEach(id => {
+    docas[id] = { ...DOCA_PADRAO, ...((raw?.docas || {})[id] || {}) };
+  });
+  return { docas, historico: Array.isArray(raw?.historico) ? raw.historico : [] };
+}
+
 function carregar() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...ESTADO_PADRAO };
-    return { ...ESTADO_PADRAO, ...JSON.parse(raw) };
+    return normalizarEstado(raw ? JSON.parse(raw) : null);
   } catch {
-    return { ...ESTADO_PADRAO };
+    return normalizarEstado(null);
   }
 }
 
@@ -54,7 +69,7 @@ function _salvarLocal(estado) {
 }
 
 // ────────── FIREBASE ──────────
-let _dbRef        = null;
+let _dbRef         = null;
 let _firebaseAtivo = false;
 
 function inicializarFirebase() {
@@ -80,18 +95,18 @@ function inscrever(callback) {
   if (_dbRef) {
     _dbRef.on("value", (snap) => {
       const val = snap.val();
-      if (val) callback({ ...ESTADO_PADRAO, ...val });
+      if (val) callback(normalizarEstado(val));
     });
     return;
   }
   // Fallback local
   try {
     const bc = new BroadcastChannel(CANAL);
-    bc.onmessage = (e) => callback(e.data);
+    bc.onmessage = (e) => callback(normalizarEstado(e.data));
   } catch {}
   window.addEventListener("storage", (e) => {
     if (e.key === STORAGE_KEY && e.newValue) {
-      try { callback(JSON.parse(e.newValue)); } catch {}
+      try { callback(normalizarEstado(JSON.parse(e.newValue))); } catch {}
     }
   });
 }

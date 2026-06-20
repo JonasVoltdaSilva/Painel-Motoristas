@@ -34,7 +34,7 @@
         <h1>CONTROLE
           <span class="firebase-dot" id="firebase-dot" title="Sync desconectado"></span>
         </h1>
-        <p>Edite os campos e clique em Publicar para atualizar o painel</p>
+        <p>Selecione a doca, edite os campos e clique em Publicar</p>
       </div>
       <div class="ctrl-header-acoes">
         <a href="index.html" class="ctrl-link" target="_blank">↗ Ver painel</a>
@@ -42,15 +42,18 @@
       </div>
     </header>
 
+    <!-- TABS DE DOCA -->
+    <div class="ctrl-tabs" role="tablist" aria-label="Selecionar doca">
+      <button class="ctrl-tab active" role="tab" data-doca="1" aria-selected="true">Doca 1</button>
+      <button class="ctrl-tab"        role="tab" data-doca="2" aria-selected="false">Doca 2</button>
+      <button class="ctrl-tab"        role="tab" data-doca="3" aria-selected="false">Doca 3</button>
+      <button class="ctrl-tab"        role="tab" data-doca="4" aria-selected="false">Doca 4</button>
+    </div>
+
     <!-- MOTORISTA ATUAL -->
     <section class="ctrl-card">
-      <h2>Motorista atual</h2>
+      <h2 id="titulo-doca">Doca 1 — Motorista atual</h2>
       <div class="ctrl-grid">
-
-        <label class="ctrl-field ctrl-field-sm">
-          <span>Doca</span>
-          <input type="text" id="in-doca" maxlength="3" inputmode="numeric" />
-        </label>
 
         <label class="ctrl-field">
           <span>Status</span>
@@ -103,10 +106,10 @@
       </div>
     </section>
 
-    <!-- HISTÓRICO -->
+    <!-- HISTÓRICO RECENTE -->
     <section class="ctrl-card">
       <div class="ctrl-card-header">
-        <h2>Histórico</h2>
+        <h2>Histórico recente</h2>
         <button class="btn btn-sm" id="add-historico" type="button">+ Adicionar</button>
       </div>
       <div id="hist-lista" class="hist-lista"></div>
@@ -154,7 +157,7 @@
     (function initAuth() {
       if (tipoSessao() === "admin") { iniciarControle(); return; }
       document.getElementById("auth-overlay").classList.add("visivel");
-      document.getElementById("auth-btn").onclick     = tentarLoginAdmin;
+      document.getElementById("auth-btn").onclick       = tentarLoginAdmin;
       document.getElementById("auth-usuario").onkeydown = (e) => { if (e.key === "Enter") document.getElementById("auth-senha").focus(); };
       document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLoginAdmin(); };
       setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
@@ -163,7 +166,8 @@
     // ════════════════════════════════════════════════════
     // CONTROLE
     // ════════════════════════════════════════════════════
-    let estado = carregar();
+    let estado    = carregar();
+    let docaAtiva = "1";
 
     function iniciarControle() {
       // Indicador Firebase
@@ -177,6 +181,7 @@
         });
       }
 
+      vincularTabs();
       preencher();
       vincularCampos();
       vincularHistorico();
@@ -185,9 +190,26 @@
       inscrever((novo) => { if (!_temAlteracoes) { estado = novo; preencher(); } });
     }
 
-    // ── Campos principais ──
+    // ── Tabs de doca ──
+    function vincularTabs() {
+      document.querySelectorAll(".ctrl-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          docaAtiva = tab.dataset.doca;
+          document.querySelectorAll(".ctrl-tab").forEach(t => {
+            t.classList.toggle("active", t === tab);
+            t.setAttribute("aria-selected", t === tab ? "true" : "false");
+          });
+          document.getElementById("titulo-doca").textContent = `Doca ${docaAtiva} — Motorista atual`;
+          _temAlteracoes = false;
+          const cs = document.getElementById("ctrl-status");
+          cs.textContent = "Pronto"; cs.className = "ctrl-status";
+          preencher();
+        });
+      });
+    }
+
+    // ── Campos da doca ativa ──
     const CAMPOS = {
-      "in-doca":      "doca",
       "in-status":    "status",
       "in-motorista": "motorista",
       "in-placa":     "placa",
@@ -195,12 +217,19 @@
       "in-tipo":      "tipo",
     };
 
+    function docaAtual() {
+      if (!estado.docas) estado.docas = {};
+      if (!estado.docas[docaAtiva]) estado.docas[docaAtiva] = { ...DOCA_PADRAO };
+      return estado.docas[docaAtiva];
+    }
+
     function preencher() {
+      const d = docaAtual();
       Object.entries(CAMPOS).forEach(([id, key]) => {
         const el = document.getElementById(id);
-        if (el) el.value = estado[key] || "";
+        if (el) el.value = d[key] || "";
       });
-      document.getElementById("in-paletizada").checked = !!estado.paletizada;
+      document.getElementById("in-paletizada").checked = !!d.paletizada;
       renderHistorico();
     }
 
@@ -211,15 +240,14 @@
         el.addEventListener("input", () => {
           let v = el.value;
           if (["motorista", "veiculo", "placa"].includes(key)) {
-            v = v.toUpperCase();
-            el.value = v;
+            v = v.toUpperCase(); el.value = v;
           }
-          estado[key] = v;
+          docaAtual()[key] = v;
           marcarPendente();
         });
       });
       document.getElementById("in-paletizada").addEventListener("change", (e) => {
-        estado.paletizada = e.target.checked;
+        docaAtual().paletizada = e.target.checked;
         marcarPendente();
       });
     }
@@ -227,11 +255,11 @@
     // ── Histórico ──
     function renderHistorico() {
       const cont = document.getElementById("hist-lista");
-      cont.innerHTML = (estado.historico || []).map((h, i) => `
+      cont.innerHTML = (estado.historico || []).slice(0, 10).map((h, i) => `
         <div class="hist-item">
-          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca}"      placeholder="01" />
-          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista}" placeholder="NOME" />
-          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status}"    placeholder="STATUS" />
+          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca || ""}"      placeholder="D" maxlength="1" />
+          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista || ""}" placeholder="NOME" />
+          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status || ""}"    placeholder="STATUS" />
           <button class="hist-rm" data-i="${i}" type="button" title="Remover">×</button>
         </div>
       `).join("");
@@ -258,7 +286,7 @@
     function vincularHistorico() {
       document.getElementById("add-historico").addEventListener("click", () => {
         if (!estado.historico) estado.historico = [];
-        estado.historico.unshift({ doca: "", motorista: "", status: "AGUARDANDO MOTORISTA" });
+        estado.historico.unshift({ doca: docaAtiva, motorista: "", status: "AGUARDANDO MOTORISTA", placa: "", ts: Date.now() });
         renderHistorico();
         marcarPendente();
       });
@@ -268,7 +296,7 @@
     function vincularAcoes() {
       document.getElementById("resetar").addEventListener("click", () => {
         if (!confirm("Resetar todos os dados?")) return;
-        localStorage.removeItem("painel-motoristas:v1");
+        localStorage.removeItem(STORAGE_KEY);
         estado = carregar();
         salvar(estado);
         preencher();
@@ -282,13 +310,27 @@
       });
 
       document.getElementById("btn-publicar").addEventListener("click", () => {
+        const d      = docaAtual();
+        const status = (d.status || "").toUpperCase();
+        // Auto-adicionar ao histórico ao liberar/finalizar
+        if (status.includes("LIBERADO") || status.includes("FINALIZADO")) {
+          if (!estado.historico) estado.historico = [];
+          estado.historico.unshift({
+            doca:      docaAtiva,
+            motorista: d.motorista || "",
+            placa:     d.placa || "",
+            status:    d.status || "",
+            ts:        Date.now(),
+          });
+          if (estado.historico.length > 20) estado.historico.length = 20;
+        }
         salvar(estado);
         sinalizarPublicado();
       });
     }
 
     // ── Status de edição / publicação ──
-    let _timer;
+    let _timer         = null;
     let _temAlteracoes = false;
 
     function marcarPendente() {

@@ -647,3 +647,76 @@ body::after {
   .item-doca      { font-size: 3.6vmin; }
   .item-info      { font-size: 2.4vmin; }
 }
+
+/* ────────── GLOW OVERLAY (sinal de atualização publicada) ────────── */
+@keyframes glow-soro {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.glow-overlay {
+  position: fixed;
+  inset: 0.4vmin;
+  border-radius: 2.2vmin;
+  pointer-events: none;
+  z-index: 180;
+  border: 0.35vmin solid var(--verde);
+  box-shadow:
+    0 0 3.5vmin rgba(62, 242, 179, 0.90),
+    0 0 8vmin   rgba(62, 242, 179, 0.50),
+    inset 0 0 2.5vmin rgba(62, 242, 179, 0.22);
+  opacity: 0;
+}
+.glow-overlay.ativo {
+  animation: glow-soro 2.8s ease-in-out forwards;
+}
+
+/* ────────── BOTÃO LOCK (acesso admin discreto) ────────── */
+.btn-lock {
+  position: fixed;
+  bottom: 1.4vmin;
+  right: 1.4vmin;
+  z-index: 160;
+  width: clamp(26px, 3.4vmin, 44px);
+  height: clamp(26px, 3.4vmin, 44px);
+  background: rgba(6, 10, 16, 0.48);
+  border: 0.12vmin solid rgba(62, 242, 179, 0.10);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.22;
+  transition: opacity 0.3s, background 0.3s, border-color 0.3s;
+}
+.btn-lock:hover {
+  opacity: 0.85;
+  background: rgba(62, 242, 179, 0.07);
+  border-color: rgba(62, 242, 179, 0.28);
+}
+.btn-lock svg {
+  width: clamp(11px, 1.6vmin, 20px);
+  height: clamp(11px, 1.6vmin, 20px);
+  color: var(--verde);
+  flex-shrink: 0;
+}
+
+/* ── Fechar overlay ao clicar fora ── */
+.auth-card .auth-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 3;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--branco-60);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 4px 8px;
+  transition: color 0.15s;
+  font-family: inherit;
+}
+.auth-card .auth-close:hover { color: var(--branco-90); }

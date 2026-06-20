@@ -12,24 +12,6 @@
 </head>
 <body class="ctrl-body">
 
-  <!-- ── OVERLAY DE CONFIGURAÇÃO INICIAL ── -->
-  <div class="auth-overlay" id="setup-overlay">
-    <div class="auth-card">
-      <h1>CONFIGURAÇÃO</h1>
-      <p class="auth-desc">Primeira vez? Defina as senhas de acesso ao painel.</p>
-      <div class="auth-campos">
-        <input type="password" id="setup-admin-pass" placeholder="Senha do administrador (dpa)" autocomplete="new-password" />
-        <input type="password" id="setup-viewer-pass" placeholder="Senha do visualizador" autocomplete="new-password" />
-      </div>
-      <p class="auth-erro" id="setup-erro"></p>
-      <button class="auth-btn" id="setup-btn" type="button">SALVAR E ENTRAR</button>
-      <p class="auth-desc" style="margin-top:14px;font-size:0.62rem">
-        Admin: usuário <b style="color:var(--verde)">dpa</b> &nbsp;·&nbsp;
-        Visualizador: usuário <b style="color:var(--verde)">visualizar</b>
-      </p>
-    </div>
-  </div>
-
   <!-- ── OVERLAY DE LOGIN ── -->
   <div class="auth-overlay" id="auth-overlay">
     <div class="auth-card">
@@ -52,7 +34,7 @@
         <h1>CONTROLE
           <span class="firebase-dot" id="firebase-dot" title="Sync desconectado"></span>
         </h1>
-        <p>Edite os campos — o painel atualiza ao vivo</p>
+        <p>Edite os campos e clique em Publicar para atualizar o painel</p>
       </div>
       <div class="ctrl-header-acoes">
         <a href="index.html" class="ctrl-link" target="_blank">↗ Ver painel</a>
@@ -133,7 +115,15 @@
     <!-- AÇÕES -->
     <div class="ctrl-acoes">
       <button class="btn btn-ghost" id="resetar" type="button">Resetar dados</button>
-      <span class="ctrl-status" id="ctrl-status">Pronto</span>
+      <div class="ctrl-publicar-area">
+        <span class="ctrl-status" id="ctrl-status">Pronto</span>
+        <button class="btn btn-publicar" id="btn-publicar" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+          </svg>
+          Publicar na tela
+        </button>
+      </div>
     </div>
   </main>
 
@@ -155,49 +145,19 @@
         document.getElementById("auth-overlay").classList.remove("visivel");
         iniciarControle();
       } else {
-        err.textContent = tipo === "viewer" ? "Acesso negado — use credenciais de administrador" : "Usuário ou senha incorretos";
+        err.textContent = "Usuário ou senha incorretos";
         document.getElementById("auth-senha").value = "";
         document.getElementById("auth-senha").focus();
       }
     }
 
-    function mostrarLogin() {
-      document.getElementById("auth-overlay").classList.add("visivel");
-      document.getElementById("auth-btn").addEventListener("click", tentarLoginAdmin);
-      document.getElementById("auth-usuario").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("auth-senha").focus();
-      });
-      document.getElementById("auth-senha").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") tentarLoginAdmin();
-      });
-      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
-    }
-
-    function mostrarSetup() {
-      document.getElementById("setup-overlay").classList.add("visivel");
-      document.getElementById("setup-btn").addEventListener("click", async () => {
-        const adminPass  = document.getElementById("setup-admin-pass").value;
-        const viewerPass = document.getElementById("setup-viewer-pass").value;
-        const err        = document.getElementById("setup-erro");
-        if (!adminPass || !viewerPass) { err.textContent = "Preencha as duas senhas"; return; }
-        if (adminPass.length < 4 || viewerPass.length < 4) { err.textContent = "Mínimo 4 caracteres por senha"; return; }
-        await salvarConfig(adminPass, viewerPass);
-        salvarSessao("admin");
-        document.getElementById("setup-overlay").classList.remove("visivel");
-        iniciarControle();
-      });
-      document.getElementById("setup-admin-pass").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("setup-viewer-pass").focus();
-      });
-      document.getElementById("setup-viewer-pass").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("setup-btn").click();
-      });
-      setTimeout(() => document.getElementById("setup-admin-pass").focus(), 100);
-    }
-
     (function initAuth() {
       if (tipoSessao() === "admin") { iniciarControle(); return; }
-      precisaConfigurar().then(needsSetup => needsSetup ? mostrarSetup() : mostrarLogin());
+      document.getElementById("auth-overlay").classList.add("visivel");
+      document.getElementById("auth-btn").onclick     = tentarLoginAdmin;
+      document.getElementById("auth-usuario").onkeydown = (e) => { if (e.key === "Enter") document.getElementById("auth-senha").focus(); };
+      document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLoginAdmin(); };
+      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
     })();
 
     // ════════════════════════════════════════════════════
@@ -222,7 +182,7 @@
       vincularHistorico();
       vincularAcoes();
 
-      inscrever((novo) => { estado = novo; preencher(); });
+      inscrever((novo) => { if (!_temAlteracoes) { estado = novo; preencher(); } });
     }
 
     // ── Campos principais ──
@@ -255,14 +215,12 @@
             el.value = v;
           }
           estado[key] = v;
-          salvar(estado);
-          sinalizarSalvo();
+          marcarPendente();
         });
       });
       document.getElementById("in-paletizada").addEventListener("change", (e) => {
         estado.paletizada = e.target.checked;
-        salvar(estado);
-        sinalizarSalvo();
+        marcarPendente();
       });
     }
 
@@ -284,17 +242,15 @@
           let v = inp.value;
           if (k === "motorista" || k === "status") { v = v.toUpperCase(); inp.value = v; }
           estado.historico[i][k] = v;
-          salvar(estado);
-          sinalizarSalvo();
+          marcarPendente();
         });
       });
 
       cont.querySelectorAll(".hist-rm").forEach((btn) => {
         btn.addEventListener("click", () => {
           estado.historico.splice(+btn.dataset.i, 1);
-          salvar(estado);
           renderHistorico();
-          sinalizarSalvo();
+          marcarPendente();
         });
       });
     }
@@ -303,9 +259,8 @@
       document.getElementById("add-historico").addEventListener("click", () => {
         if (!estado.historico) estado.historico = [];
         estado.historico.unshift({ doca: "", motorista: "", status: "AGUARDANDO MOTORISTA" });
-        salvar(estado);
         renderHistorico();
-        sinalizarSalvo();
+        marcarPendente();
       });
     }
 
@@ -317,7 +272,7 @@
         estado = carregar();
         salvar(estado);
         preencher();
-        sinalizarSalvo();
+        sinalizarPublicado();
       });
 
       document.getElementById("btn-sair").addEventListener("click", () => {
@@ -325,19 +280,40 @@
         deslogar();
         location.href = "index.html";
       });
+
+      document.getElementById("btn-publicar").addEventListener("click", () => {
+        salvar(estado);
+        sinalizarPublicado();
+      });
     }
 
-    // ── Feedback de salvamento ──
+    // ── Status de edição / publicação ──
     let _timer;
-    function sinalizarSalvo() {
+    let _temAlteracoes = false;
+
+    function marcarPendente() {
+      _temAlteracoes = true;
       const el = document.getElementById("ctrl-status");
-      el.textContent = "Salvando…";
-      el.classList.add("salvando");
+      el.textContent = "● Não publicado";
+      el.className   = "ctrl-status pendente";
+    }
+
+    function sinalizarPublicado() {
+      _temAlteracoes = false;
+      const el = document.getElementById("ctrl-status");
+      el.textContent = "Publicando…";
+      el.className   = "ctrl-status salvando";
       clearTimeout(_timer);
       _timer = setTimeout(() => {
-        el.textContent = "Salvo ✓";
-        el.classList.remove("salvando");
-      }, 500);
+        el.textContent = "✓ Publicado";
+        el.className   = "ctrl-status publicado";
+        setTimeout(() => {
+          if (!_temAlteracoes) {
+            el.textContent = "Pronto";
+            el.className   = "ctrl-status";
+          }
+        }, 2500);
+      }, 400);
     }
   </script>
 </body>

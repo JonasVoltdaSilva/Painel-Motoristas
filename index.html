@@ -11,11 +11,12 @@
 </head>
 <body>
 
-  <!-- ── OVERLAY DE LOGIN ── -->
+  <!-- ── OVERLAY DE LOGIN (abre apenas via botão lock) ── -->
   <div class="auth-overlay" id="auth-overlay">
     <div class="auth-card">
-      <h1>PAINEL</h1>
-      <p class="auth-desc">Digite a senha para visualizar</p>
+      <button class="auth-close" id="auth-close" type="button" aria-label="Fechar">×</button>
+      <h1>ACESSO</h1>
+      <p class="auth-desc">Entre como administrador para configurar o painel</p>
       <div class="auth-campos">
         <input type="text" id="auth-usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" />
         <input type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password" />
@@ -68,6 +69,17 @@
 
   </main>
 
+  <!-- ── GLOW DE ATUALIZAÇÃO ── -->
+  <div class="glow-overlay" id="glow-overlay" aria-hidden="true"></div>
+
+  <!-- ── BOTÃO DISCRETO DE ACESSO ADMIN ── -->
+  <button class="btn-lock" id="btn-lock" type="button" aria-label="Acesso administrador" title="Administrador">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </button>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
@@ -76,10 +88,10 @@
     // ── CLASSIFICAR STATUS ──
     function classificarStatus(s) {
       const u = (s || "").toUpperCase();
-      if (u.includes("FINALIZADO") || u.includes("LIBERADO"))              return "finalizado";
-      if (u.includes("AGUARDANDO"))                                         return "aguardando";
-      if (u.includes("CONFERÊNCIA") || u.includes("CONFERENCIA"))          return "conferencia";
-      if (u.includes("CARREGAMENTO") || u.includes("DESCARREGAMENTO"))     return "carregando";
+      if (u.includes("FINALIZADO") || u.includes("LIBERADO"))          return "finalizado";
+      if (u.includes("AGUARDANDO"))                                     return "aguardando";
+      if (u.includes("CONFERÊNCIA") || u.includes("CONFERENCIA"))      return "conferencia";
+      if (u.includes("CARREGAMENTO") || u.includes("DESCARREGAMENTO")) return "carregando";
       return "";
     }
 
@@ -105,15 +117,35 @@
       `).join("");
     }
 
-    // ── AUTH ──
+    // ── GLOW DE ATUALIZAÇÃO ──
+    function ativarGlow() {
+      const el = document.getElementById("glow-overlay");
+      if (!el) return;
+      el.classList.remove("ativo");
+      void el.offsetWidth; // força reflow para reiniciar a animação
+      el.classList.add("ativo");
+      setTimeout(() => el.classList.remove("ativo"), 3200);
+    }
+
+    // ── PAINEL PRINCIPAL ──
     const isKiosk = new URLSearchParams(location.search).has("kiosk");
+    let _primeiroUpdate = _firebaseAtivo; // Firebase: suprime callback inicial; BroadcastChannel: sempre mostra glow
 
     function iniciarPainel() {
-      if (tipoSessao() === "admin") {
-        document.getElementById("edit-btn").style.display = "";
-      }
       render(carregar());
-      inscrever(render);
+      inscrever((estado) => {
+        render(estado);
+        if (!_primeiroUpdate) ativarGlow();
+        _primeiroUpdate = false;
+      });
+    }
+
+    // ── LOGIN (modal acessado via botão lock) ──
+    function fecharLogin() {
+      document.getElementById("auth-overlay").classList.remove("visivel");
+      document.getElementById("auth-usuario").value       = "";
+      document.getElementById("auth-senha").value         = "";
+      document.getElementById("auth-erro").textContent    = "";
     }
 
     async function tentarLogin() {
@@ -121,10 +153,9 @@
       const senha   = document.getElementById("auth-senha").value;
       const err     = document.getElementById("auth-erro");
       const tipo    = await verificarLogin(usuario, senha);
-      if (tipo) {
-        salvarSessao(tipo);
-        document.getElementById("auth-overlay").classList.remove("visivel");
-        iniciarPainel();
+      if (tipo === "admin") {
+        salvarSessao("admin");
+        location.href = "controle.html";
       } else {
         err.textContent = "Usuário ou senha incorretos";
         document.getElementById("auth-senha").value = "";
@@ -132,24 +163,28 @@
       }
     }
 
+    function abrirLogin() {
+      document.getElementById("auth-overlay").classList.add("visivel");
+      document.getElementById("auth-btn").onclick       = tentarLogin;
+      document.getElementById("auth-usuario").onkeydown = (e) => { if (e.key === "Enter") document.getElementById("auth-senha").focus(); };
+      document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLogin(); };
+      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
+    }
+
+    // ── INIT ──
     (function init() {
-      if (isKiosk || tipoSessao()) { iniciarPainel(); return; }
-      precisaConfigurar().then(needsSetup => {
-        if (needsSetup) {
-          // Redireciona para controle onde o setup acontece
-          location.href = "controle.html";
-          return;
-        }
-        document.getElementById("auth-overlay").classList.add("visivel");
-        document.getElementById("auth-btn").addEventListener("click", tentarLogin);
-        document.getElementById("auth-usuario").addEventListener("keydown", (e) => {
-          if (e.key === "Enter") document.getElementById("auth-senha").focus();
+      iniciarPainel();
+
+      if (!isKiosk) {
+        document.getElementById("btn-lock").addEventListener("click", abrirLogin);
+        document.getElementById("auth-close").addEventListener("click", fecharLogin);
+        document.getElementById("auth-overlay").addEventListener("click", (e) => {
+          if (e.target === document.getElementById("auth-overlay")) fecharLogin();
         });
-        document.getElementById("auth-senha").addEventListener("keydown", (e) => {
-          if (e.key === "Enter") tentarLogin();
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") fecharLogin();
         });
-        setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
-      });
+      }
     })();
   </script>
 </body>

@@ -8,13 +8,10 @@ const DOCA_PADRAO = {
   paletizada: false,
 };
 
+const DOCA_IDS = ["1","2","3","4","5","6","7","8","9","10","11","12"];
+
 const ESTADO_PADRAO = {
-  docas: {
-    "1": { ...DOCA_PADRAO },
-    "2": { ...DOCA_PADRAO },
-    "3": { ...DOCA_PADRAO },
-    "4": { ...DOCA_PADRAO },
-  },
+  docas:     Object.fromEntries(DOCA_IDS.map(id => [id, { ...DOCA_PADRAO }])),
   historico: [],
 };
 
@@ -41,10 +38,10 @@ function salvarSessao(tipo) { sessionStorage.setItem(SESSION_KEY, tipo); }
 function tipoSessao()       { return sessionStorage.getItem(SESSION_KEY); }
 function deslogar()         { sessionStorage.removeItem(SESSION_KEY); }
 
-// ────────── ARMAZENAMENTO LOCAL ──────────
+// ────────── ARMAZENAMENTO ──────────
 function normalizarEstado(raw) {
   const docas = {};
-  ["1", "2", "3", "4"].forEach(id => {
+  DOCA_IDS.forEach(id => {
     docas[id] = { ...DOCA_PADRAO, ...((raw?.docas || {})[id] || {}) };
   });
   return { docas, historico: Array.isArray(raw?.historico) ? raw.historico : [] };
@@ -59,18 +56,10 @@ function carregar() {
   }
 }
 
-function _salvarLocal(estado) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-  try {
-    const bc = new BroadcastChannel(CANAL);
-    bc.postMessage(estado);
-    bc.close();
-  } catch {}
-}
-
-// ────────── FIREBASE ──────────
+// ────────── FIREBASE + SYNC ──────────
 let _dbRef         = null;
 let _firebaseAtivo = false;
+let _bc            = null; // BroadcastChannel reutilizado para envio e recepção
 
 function inicializarFirebase() {
   try {
@@ -86,6 +75,14 @@ function inicializarFirebase() {
   }
 }
 
+function _salvarLocal(estado) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+  try {
+    // Reutiliza o canal aberto por inscrever() — evita criar/fechar canais descartáveis
+    if (_bc) _bc.postMessage(estado);
+  } catch {}
+}
+
 function salvar(estado) {
   _salvarLocal(estado);
   if (_dbRef) _dbRef.set(estado).catch(() => {});
@@ -99,11 +96,12 @@ function inscrever(callback) {
     });
     return;
   }
-  // Fallback local
+  // Fallback local: mantém referência global ao BC para evitar GC e reutilizar ao enviar
   try {
-    const bc = new BroadcastChannel(CANAL);
-    bc.onmessage = (e) => callback(normalizarEstado(e.data));
+    _bc = new BroadcastChannel(CANAL);
+    _bc.onmessage = (e) => { try { callback(normalizarEstado(e.data)); } catch {} };
   } catch {}
+  // Storage event como backup (também funciona entre abas no mesmo browser)
   window.addEventListener("storage", (e) => {
     if (e.key === STORAGE_KEY && e.newValue) {
       try { callback(normalizarEstado(JSON.parse(e.newValue))); } catch {}
@@ -111,5 +109,4 @@ function inscrever(callback) {
   });
 }
 
-// Inicializa Firebase ao carregar o script
 inicializarFirebase();

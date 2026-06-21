@@ -90,6 +90,28 @@ body::after {
   z-index: 10;
 }
 
+.tv-indicador {
+  display: flex;
+  gap: 0.7vmin;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pag-dot {
+  width: 0.9vmin;
+  height: 0.9vmin;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+
+.pag-dot.ativo {
+  background: var(--verde);
+  box-shadow: 0 0 0.8vmin var(--verde);
+}
+
 .tv-empresa {
   font-size: 1.8vmin;
   font-weight: 700;

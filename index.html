@@ -29,6 +29,11 @@
   <!-- ── TV HEADER ── -->
   <header class="tv-header">
     <span class="tv-empresa">DPA</span>
+    <div class="tv-indicador" id="tv-indicador" aria-hidden="true">
+      <span class="pag-dot ativo"></span>
+      <span class="pag-dot"></span>
+      <span class="pag-dot"></span>
+    </div>
     <time id="relogio-tv" class="tv-relogio" aria-label="Horário atual"></time>
   </header>
 
@@ -57,6 +62,15 @@
   <script src="firebase-config.js"></script>
   <script src="script.js"></script>
   <script>
+    // ── PAGINAÇÃO TV (4 docas por página, 3 páginas = 12 docas) ──
+    const TV_PAGINAS = [
+      ["1","2","3","4"],
+      ["5","6","7","8"],
+      ["9","10","11","12"],
+    ];
+    let _paginaAtual = 0;
+    let _estadoAtual = null;
+
     // ── CLASSIFICAR STATUS ──
     function classificarStatus(s) {
       const u = (s || "").toUpperCase();
@@ -76,13 +90,16 @@
 
     // ── RENDER GRID ──
     function render(estado) {
+      _estadoAtual = estado;
+      const docasDaPagina = TV_PAGINAS[_paginaAtual];
+
       const grid = document.getElementById("dock-grid");
-      grid.innerHTML = ["1", "2", "3", "4"].map(id => {
-        const d          = ((estado.docas || {})[id]) || {};
-        const vazio      = !(d.motorista || "").trim();
-        const statusCls  = classificarStatus(d.status);
-        const statusTxt  = d.status || "AGUARDANDO MOTORISTA";
-        const sufixo     = d.paletizada ? " · PALETIZADA" : (d.tipo ? " · NÃO PALETIZADA" : "");
+      grid.innerHTML = docasDaPagina.map(id => {
+        const d         = ((estado.docas || {})[id]) || {};
+        const vazio     = !(d.motorista || "").trim();
+        const statusCls = classificarStatus(d.status);
+        const statusTxt = d.status || "AGUARDANDO MOTORISTA";
+        const sufixo    = d.paletizada ? " · PALETIZADA" : (d.tipo ? " · NÃO PALETIZADA" : "");
         return `<article class="dock-card" data-status="${statusCls}"
                          aria-label="Doca ${id}: ${statusTxt}">
           <div class="dc-header">
@@ -101,17 +118,30 @@
         </article>`;
       }).join("");
 
+      // Atualiza indicador de página
+      document.querySelectorAll(".pag-dot").forEach((dot, i) => {
+        dot.classList.toggle("ativo", i === _paginaAtual);
+      });
+
       // Histórico — últimos 6
       document.getElementById("campo-historico").innerHTML =
         (estado.historico || []).slice(0, 6).map(h =>
           `<div class="history-item">
             <span class="hi-time">${formatarHora(h.ts)}</span>
-            &nbsp;·&nbsp;<span class="hi-dock">D0${h.doca}</span>
+            &nbsp;·&nbsp;<span class="hi-dock">D${String(h.doca).padStart(2,"0")}</span>
             &nbsp;·&nbsp;<span class="hi-name">${h.motorista || ""}</span>
             &nbsp;·&nbsp;<span class="hi-plate">${h.placa || ""}</span>
             &nbsp;·&nbsp;<span class="hi-status">${h.status || ""}</span>
           </div>`
         ).join("");
+    }
+
+    // ── ROTAÇÃO AUTOMÁTICA (6s por página) ──
+    function iniciarRotacao() {
+      setInterval(() => {
+        _paginaAtual = (_paginaAtual + 1) % TV_PAGINAS.length;
+        if (_estadoAtual) render(_estadoAtual);
+      }, 6000);
     }
 
     // ── GLOW DE ATUALIZAÇÃO ──
@@ -139,7 +169,9 @@
     let _primeiroUpdate = _firebaseAtivo;
 
     function iniciarPainel() {
-      render(carregar());
+      _estadoAtual = carregar();
+      render(_estadoAtual);
+      iniciarRotacao();
       inscrever((estado) => {
         render(estado);
         if (!_primeiroUpdate) ativarGlow();

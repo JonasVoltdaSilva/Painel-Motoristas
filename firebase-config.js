@@ -24,6 +24,6 @@ const FIREBASE_CONFIG = {
   appId:             ""
 };
 
-// Usuários (não são segredos — senhas são definidas no primeiro acesso)
-const ADMIN_USER  = "dpa";
-const VIEWER_USER = "visualizar";
+// Credenciais de administrador — altere aqui
+const ADMIN_USER = "dpa";
+const ADMIN_PASS = "1234";

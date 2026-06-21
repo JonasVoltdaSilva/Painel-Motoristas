@@ -1,8 +1,20 @@
 /* ────────── CONTROLE ────────── */
-.ctrl-body {
-  overflow: auto !important;
+html.ctrl-page {
+  height: auto;
+  overflow-y: auto;
+}
+
+html.ctrl-page body {
+  display: block !important;
+  height: auto !important;
+  min-height: 100vh;
+  overflow: visible !important;
   text-transform: none !important;
   font-family: "Montserrat", system-ui, sans-serif;
+  background:
+    radial-gradient(circle 20vmin at 15% 30%, rgba(62, 242, 179, 0.18), transparent 70%),
+    radial-gradient(circle 30vmin at 85% 70%, rgba(40, 80, 180, 0.14), transparent 70%),
+    var(--bg-base);
 }
 
 .ctrl-wrap {

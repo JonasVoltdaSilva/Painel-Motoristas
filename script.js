@@ -94,14 +94,12 @@ function inscrever(callback) {
       const val = snap.val();
       if (val) callback(normalizarEstado(val));
     });
-    return;
   }
-  // Fallback local: mantém referência global ao BC para evitar GC e reutilizar ao enviar
+  // BroadcastChannel e storage event ficam sempre ativos como fallback
   try {
     _bc = new BroadcastChannel(CANAL);
     _bc.onmessage = (e) => { try { callback(normalizarEstado(e.data)); } catch {} };
   } catch {}
-  // Storage event como backup (também funciona entre abas no mesmo browser)
   window.addEventListener("storage", (e) => {
     if (e.key === STORAGE_KEY && e.newValue) {
       try { callback(normalizarEstado(JSON.parse(e.newValue))); } catch {}

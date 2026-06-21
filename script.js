@@ -59,7 +59,7 @@ function carregar() {
 // ────────── FIREBASE + SYNC ──────────
 let _dbRef         = null;
 let _firebaseAtivo = false;
-let _bc            = null; // BroadcastChannel reutilizado para envio e recepção
+let _bc            = null;
 
 function inicializarFirebase() {
   try {
@@ -76,10 +76,11 @@ function inicializarFirebase() {
 }
 
 function _salvarLocal(estado) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+  // Carimba timestamp para o polling detectar mudanças
+  const payload = { ...estado, _ts: Date.now() };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   try {
-    // Reutiliza o canal aberto por inscrever() — evita criar/fechar canais descartáveis
-    if (_bc) _bc.postMessage(estado);
+    if (_bc) _bc.postMessage(payload);
   } catch {}
 }
 
@@ -88,23 +89,51 @@ function salvar(estado) {
   if (_dbRef) _dbRef.set(estado).catch(() => {});
 }
 
+// Subscreve atualizações via todos os canais disponíveis.
+// callback recebe o estado normalizado.
+// Retorna uma função que atualiza o "baseline" do polling (evita render duplo).
 function inscrever(callback) {
+  let _ultimoJson = localStorage.getItem(STORAGE_KEY) || "";
+
+  // ── Firebase ──────────────────────────────────────────
   if (_dbRef) {
     _dbRef.on("value", (snap) => {
       const val = snap.val();
-      if (val) callback(normalizarEstado(val));
+      if (!val) return;
+      try { _ultimoJson = localStorage.getItem(STORAGE_KEY) || ""; } catch {}
+      callback(normalizarEstado(val));
     });
   }
-  // BroadcastChannel e storage event ficam sempre ativos como fallback
+
+  // ── BroadcastChannel (mesma origem, qualquer aba) ─────
   try {
     _bc = new BroadcastChannel(CANAL);
-    _bc.onmessage = (e) => { try { callback(normalizarEstado(e.data)); } catch {} };
+    _bc.onmessage = (e) => {
+      try {
+        _ultimoJson = localStorage.getItem(STORAGE_KEY) || "";
+        callback(normalizarEstado(e.data));
+      } catch {}
+    };
   } catch {}
+
+  // ── Storage event (mesma origem, outras abas) ─────────
   window.addEventListener("storage", (e) => {
-    if (e.key === STORAGE_KEY && e.newValue) {
-      try { callback(normalizarEstado(JSON.parse(e.newValue))); } catch {}
-    }
+    if (e.key !== STORAGE_KEY || !e.newValue) return;
+    try {
+      _ultimoJson = e.newValue;
+      callback(normalizarEstado(JSON.parse(e.newValue)));
+    } catch {}
   });
+
+  // ── Polling de localStorage (fallback garantido a cada 2s) ───
+  setInterval(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || "";
+      if (!raw || raw === _ultimoJson) return;
+      _ultimoJson = raw;
+      callback(normalizarEstado(JSON.parse(raw)));
+    } catch {}
+  }, 2000);
 }
 
 inicializarFirebase();

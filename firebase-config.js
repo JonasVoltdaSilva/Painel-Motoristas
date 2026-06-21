@@ -15,13 +15,13 @@
 // ══════════════════════════════════════════════════════
 
 const FIREBASE_CONFIG = {
-  apiKey:            "",
-  authDomain:        "",
-  databaseURL:       "",
-  projectId:         "",
-  storageBucket:     "",
-  messagingSenderId: "",
-  appId:             ""
+  apiKey:            "AIzaSyDeUWiCEDPsYD7LpY8IyHUdeHkGabyBjgg",
+  authDomain:        "painel-motoristas-efe38.firebaseapp.com",
+  databaseURL:       "https://painel-motoristas-efe38-default-rtdb.firebaseio.com",
+  projectId:         "painel-motoristas-efe38",
+  storageBucket:     "painel-motoristas-efe38.firebasestorage.app",
+  messagingSenderId: "437345440728",
+  appId:             "1:437345440728:web:fc3f3b6f6f6089851698ad"
 };
 
 // Credenciais de administrador — altere aqui

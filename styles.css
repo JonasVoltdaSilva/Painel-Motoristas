@@ -139,16 +139,64 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   GRID DE DOCAS
+   TV HEADER — área central com dots + botões de layout
+   ════════════════════════════════════════════════════════════════════ */
+.tv-header-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4vmin;
+}
+
+.tv-layout-btns {
+  display: flex;
+  gap: 0.5vmin;
+}
+
+.tv-layout-btn {
+  font-family: var(--font-main);
+  font-size: clamp(7px, 1vmin, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 0.15vmin 0.5vmin;
+  cursor: pointer;
+  min-width: clamp(18px, 2.2vmin, 28px);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  opacity: 0.5;
+}
+
+.tv-layout-btn:hover,
+.tv-layout-btn.ativo {
+  color: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   GRID DE DOCAS — templates por número de docas visíveis
    Gap de 2px = linha de separação visual usando a cor base da página.
-   Cria grid de 4 células com peso visual igual — padrão FIDS.
    ════════════════════════════════════════════════════════════════════ */
 .dock-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 2px;
-  background: var(--surface-base); /* o gap "vaza" esta cor — age como borda */
+  background: var(--surface-base);
+}
+
+.dock-grid[data-layout="2"]  { grid-template-columns: repeat(2, 1fr); grid-template-rows: 1fr; }
+.dock-grid[data-layout="4"]  { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+.dock-grid[data-layout="6"]  { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
+.dock-grid[data-layout="8"]  { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
+.dock-grid[data-layout="12"] { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); }
+
+.dock-card-placeholder {
+  background: var(--surface-card);
+  opacity: 0.18;
 }
 
 /* ════════════════════════════════════════════════════════════════════

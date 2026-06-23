@@ -29,16 +29,21 @@
   <!-- ── TV HEADER ── -->
   <header class="tv-header">
     <span class="tv-empresa">DPA</span>
-    <div class="tv-indicador" id="tv-indicador" aria-label="Página atual" role="group">
-      <span class="pag-dot ativo"></span>
-      <span class="pag-dot"></span>
-      <span class="pag-dot"></span>
+    <div class="tv-header-mid">
+      <div class="tv-indicador" id="tv-indicador" aria-label="Página atual" role="group"></div>
+      <div class="tv-layout-btns" aria-label="Layout de docas por página">
+        <button class="tv-layout-btn" data-n="2"  title="2 docas">2</button>
+        <button class="tv-layout-btn" data-n="4"  title="4 docas">4</button>
+        <button class="tv-layout-btn" data-n="6"  title="6 docas">6</button>
+        <button class="tv-layout-btn" data-n="8"  title="8 docas">8</button>
+        <button class="tv-layout-btn" data-n="12" title="12 docas">12</button>
+      </div>
     </div>
     <time id="relogio-tv" class="tv-relogio" aria-label="Horário atual"></time>
   </header>
 
   <!-- ── GRID DE DOCAS ── -->
-  <main class="dock-grid" id="dock-grid" aria-label="Status das docas"></main>
+  <main class="dock-grid" id="dock-grid" data-layout="4" aria-label="Status das docas"></main>
 
   <!-- ── HISTÓRICO ── -->
   <footer class="history-zone">
@@ -62,14 +67,35 @@
   <script src="firebase-config.js"></script>
   <script src="script.js"></script>
   <script>
-    // ── PAGINAÇÃO TV (4 docas por página, 3 páginas = 12 docas) ──
-    const TV_PAGINAS = [
-      ["1","2","3","4"],
-      ["5","6","7","8"],
-      ["9","10","11","12"],
-    ];
+    // ── LAYOUT DE DOCAS (2 / 4 / 6 / 8 / 12 por página) ──
+    const LAYOUTS_VALIDOS = [2, 4, 6, 8, 12];
+    let _layout     = parseInt(localStorage.getItem("painel-layout") || "4");
+    if (!LAYOUTS_VALIDOS.includes(_layout)) _layout = 4;
+
     let _paginaAtual = 0;
     let _estadoAtual = null;
+
+    function calcularPaginas(n) {
+      const todas = [];
+      for (let i = 0; i < DOCA_IDS.length; i += n) {
+        todas.push(DOCA_IDS.slice(i, i + n));
+      }
+      return todas;
+    }
+
+    let TV_PAGINAS = calcularPaginas(_layout);
+
+    function setLayout(n) {
+      _layout     = n;
+      TV_PAGINAS  = calcularPaginas(n);
+      _paginaAtual = 0;
+      localStorage.setItem("painel-layout", String(n));
+      document.getElementById("dock-grid").dataset.layout = String(n);
+      document.querySelectorAll(".tv-layout-btn").forEach(b =>
+        b.classList.toggle("ativo", Number(b.dataset.n) === n)
+      );
+      if (_estadoAtual) render(_estadoAtual);
+    }
 
     // ── CLASSIFICAR STATUS ──
     function classificarStatus(s) {
@@ -165,10 +191,12 @@
     // ── RENDER GRID ──
     function render(estado) {
       _estadoAtual = estado;
-      const docasDaPagina = TV_PAGINAS[_paginaAtual];
+      const docasDaPagina = TV_PAGINAS[_paginaAtual] || [];
 
       const grid = document.getElementById("dock-grid");
-      grid.innerHTML = docasDaPagina.map(id => {
+      grid.dataset.layout = String(_layout);
+
+      const cardsHTML = docasDaPagina.map(id => {
         const d         = ((estado.docas || {})[id]) || {};
         const vazio     = !(d.motorista || "").trim();
         const statusCls = classificarStatus(d.status);
@@ -188,12 +216,20 @@
                <p class="dc-info">${(d.tipo || "") + sufixo}</p>`
           }
         </article>`;
-      }).join("");
-
-      // Atualiza indicador de página
-      document.querySelectorAll(".pag-dot").forEach((dot, i) => {
-        dot.classList.toggle("ativo", i === _paginaAtual);
       });
+
+      // Preenche slots restantes com placeholders (ex: última página com menos docas)
+      while (cardsHTML.length < _layout) {
+        cardsHTML.push(`<div class="dock-card-placeholder" aria-hidden="true"></div>`);
+      }
+
+      grid.innerHTML = cardsHTML.join("");
+
+      // Dots dinâmicos por número de páginas
+      document.getElementById("tv-indicador").innerHTML =
+        TV_PAGINAS.map((_, i) =>
+          `<span class="pag-dot${i === _paginaAtual ? " ativo" : ""}"></span>`
+        ).join("");
 
       // Histórico — últimos 6
       const itensHist = (estado.historico || []).slice(0, 6);
@@ -303,6 +339,12 @@
     (function init() {
       iniciarPainel();
       iniciarRelogio();
+
+      // Botões de layout
+      document.querySelectorAll(".tv-layout-btn").forEach(btn => {
+        if (Number(btn.dataset.n) === _layout) btn.classList.add("ativo");
+        btn.addEventListener("click", () => setLayout(Number(btn.dataset.n)));
+      });
 
       if (!isKiosk) {
         document.getElementById("btn-lock").addEventListener("click", abrirLogin);

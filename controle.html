@@ -186,15 +186,48 @@
       setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
     })();
 
+    function mostrarAvisoFirebase(codigo) {
+      if (document.getElementById("firebase-aviso")) return;
+      const el = document.createElement("div");
+      el.id = "firebase-aviso";
+      el.className = "firebase-aviso";
+      el.innerHTML = `
+        <button class="firebase-aviso-fechar" title="Fechar">×</button>
+        <strong>⚠ Sync entre dispositivos inativo${codigo ? " (" + codigo + ")" : ""}</strong>
+        No Firebase Console → Realtime Database → Regras, publique:<code>{ "rules": { ".read": true, ".write": true } }</code>
+      `;
+      el.querySelector(".firebase-aviso-fechar").onclick = () => el.remove();
+      document.body.appendChild(el);
+    }
+
+    function testarPermissaoFirebase() {
+      if (!_dbRef) return;
+      _dbRef.child("_ping").set(Date.now())
+        .then(() => {
+          const dot = document.getElementById("firebase-dot");
+          if (dot) { dot.classList.remove("error"); dot.classList.add("on"); dot.title = "Firebase: sync ativo"; }
+          document.getElementById("firebase-aviso")?.remove();
+        })
+        .catch((err) => {
+          console.error("[Painel] Firebase sem permissão:", err.code, err.message);
+          const dot = document.getElementById("firebase-dot");
+          if (dot) { dot.classList.remove("on"); dot.classList.add("error"); dot.title = "Firebase: sem permissão — " + err.code; }
+          mostrarAvisoFirebase(err.code);
+        });
+    }
+
     function iniciarControle() {
-      // Indicador Firebase
+      // Indicador Firebase: monitor de conexão WebSocket + teste de permissão
       if (_firebaseAtivo && firebase?.database) {
         firebase.database().ref(".info/connected").on("value", (snap) => {
           const dot = document.getElementById("firebase-dot");
           if (!dot) return;
           const on = snap.val() === true;
-          dot.classList.toggle("on", on);
-          dot.title = on ? "Sync ativo" : "Sync desconectado";
+          if (!dot.classList.contains("error")) {
+            dot.classList.toggle("on", on);
+            dot.title = on ? "Firebase: conectado…" : "Firebase: desconectado";
+          }
+          if (on) testarPermissaoFirebase(); // verifica permissão ao conectar
         });
       }
 
@@ -205,6 +238,20 @@
       vincularAcoes();
 
       inscrever((novo) => { if (!_temAlteracoes) { estado = novo; preencher(); } });
+
+      // Feedback de escrita real (sucesso ou falha ao publicar)
+      onSync(
+        () => {
+          const dot = document.getElementById("firebase-dot");
+          if (dot) { dot.classList.remove("error"); dot.classList.add("on"); dot.title = "Firebase: sync OK"; }
+          document.getElementById("firebase-aviso")?.remove();
+        },
+        (err) => {
+          const dot = document.getElementById("firebase-dot");
+          if (dot) { dot.classList.remove("on"); dot.classList.add("error"); dot.title = "Firebase: " + err.code; }
+          mostrarAvisoFirebase(err.code);
+        }
+      );
     }
 
     // ── Tabs de doca ──

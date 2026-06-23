@@ -70,7 +70,8 @@ function inicializarFirebase() {
     _dbRef = firebase.database().ref("/painel");
     _firebaseAtivo = true;
     return true;
-  } catch {
+  } catch (e) {
+    console.error("[Painel] Firebase init error:", e);
     return false;
   }
 }
@@ -84,9 +85,21 @@ function _salvarLocal(estado) {
   } catch {}
 }
 
+// Callbacks de sync — registrados pela UI
+let _onSyncOk  = null;
+let _onSyncErr = null;
+function onSync(ok, err) { _onSyncOk = ok; _onSyncErr = err; }
+
 function salvar(estado) {
   _salvarLocal(estado);
-  if (_dbRef) _dbRef.set(estado).catch(() => {});
+  if (_dbRef) {
+    _dbRef.set(estado)
+      .then(() => { if (_onSyncOk) _onSyncOk(); })
+      .catch((e) => {
+        console.error("[Painel] Firebase write error:", e.code, e.message);
+        if (_onSyncErr) _onSyncErr(e);
+      });
+  }
 }
 
 // Subscreve atualizações via todos os canais disponíveis.

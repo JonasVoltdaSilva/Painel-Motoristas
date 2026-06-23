@@ -81,6 +81,64 @@ html.ctrl-page body {
 }
 .firebase-dot.on { background: #3EF2B3; }
 
+@keyframes pulse-warn {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+.firebase-dot.error {
+  background: #F5B731;
+  animation: pulse-warn 1s ease-in-out infinite;
+}
+
+/* Toast de aviso Firebase */
+.firebase-aviso {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A1A1A;
+  border: 1px solid #F5B731;
+  border-radius: 6px;
+  padding: 14px 40px 14px 16px;
+  max-width: min(560px, calc(100vw - 32px));
+  z-index: 200;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: #AAAAAA;
+}
+.firebase-aviso strong {
+  display: block;
+  color: #F5B731;
+  font-size: 0.73rem;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.firebase-aviso code {
+  display: block;
+  margin-top: 8px;
+  background: #111;
+  border: 1px solid #2A2A2A;
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: #3EF2B3;
+  white-space: pre;
+}
+.firebase-aviso-fechar {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  line-height: 1;
+  font-family: inherit;
+}
+.firebase-aviso-fechar:hover { color: #AAAAAA; }
+
 /* ════════ LINKS / BOTÕES HEADER ════════ */
 .ctrl-link {
   font-family: inherit;

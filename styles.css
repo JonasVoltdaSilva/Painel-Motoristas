@@ -605,3 +605,149 @@ body {
   *::before,
   *::after { transition-duration: 0.01ms !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   TIPOGRAFIA E ESPAÇAMENTO RESPONSIVOS POR LAYOUT
+   Problema: vmin escala com a viewport, mas NÃO com o número de cards.
+   Solução: seletores por data-layout sobrepõem os valores base.
+
+   Método de cálculo (legibilidade TV industrial a 4-6m, 55"):
+     distância × 0.84cm/m = altura mínima de caractere visível.
+     Para 5m: 4.2cm ≈ 160px ≈ 7.5vmin numa TV 1080p/55".
+   Valores escalados proporcionalmente à área de cada card:
+     layout 2  → card ocupa 50% da largura / 100% da altura → base máxima
+     layout 4  → card ocupa 50% × 50% → metade da área
+     layout 6  → card ocupa 33% × 50% → 1/6 da área
+     layout 8  → card ocupa 25% × 50% → 1/8 da área
+     layout 12 → card ocupa 25% × 33% → 1/12 da área
+
+   A regra fullscreen (position: fixed) está fora do grid, por isso
+   NÃO herda os overrides de layout — mantém seus próprios valores grandes.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── LAYOUT 2 — cards de chamada, leitura à máxima distância ─────── */
+.dock-grid[data-layout="2"] .dock-card   { padding: 3vmin 4vmin; }
+
+.dock-grid[data-layout="2"] .dc-status  {
+  font-size: clamp(10px, 2vmin, 24px);
+  padding: 0.5vmin 1vmin;
+  gap: 0.7vmin;
+}
+.dock-grid[data-layout="2"] .dc-dot     {
+  width: 0.9vmin;
+  height: 0.9vmin;
+  min-width: 8px;
+  min-height: 8px;
+}
+.dock-grid[data-layout="2"] .dc-numero  { font-size: clamp(14px, 2.8vmin, 30px); }
+.dock-grid[data-layout="2"] .dc-motorista {
+  font-size: clamp(36px, 10vmin, 140px);
+  margin-bottom: 0.8vmin;
+}
+.dock-grid[data-layout="2"] .dc-placa   { font-size: clamp(20px, 4.5vmin, 60px); }
+.dock-grid[data-layout="2"] .dc-info    { font-size: clamp(12px, 2.2vmin, 26px); }
+.dock-grid[data-layout="2"] .dc-livre   { font-size: clamp(20px, 5vmin, 64px); }
+
+/* ── LAYOUT 4 — referência base (valores do card padrão preservados) ─ */
+/* Padding já definido no .dock-card base: 2vmin 2.4vmin */
+/* Fontes já definidas nas regras base — nenhum override necessário */
+
+/* ── LAYOUT 6 — mais compacto, grade 3×2 ────────────────────────── */
+.dock-grid[data-layout="6"] .dock-card   { padding: 1.5vmin 2vmin; }
+
+.dock-grid[data-layout="6"] .dc-status  {
+  font-size: clamp(7px, 1.3vmin, 14px);
+  padding: 0.25vmin 0.6vmin;
+  gap: 0.4vmin;
+}
+.dock-grid[data-layout="6"] .dc-dot     {
+  width: 0.55vmin;
+  height: 0.55vmin;
+  min-width: 5px;
+  min-height: 5px;
+}
+.dock-grid[data-layout="6"] .dc-numero  { font-size: clamp(8px, 1.6vmin, 18px); }
+.dock-grid[data-layout="6"] .dc-motorista {
+  font-size: clamp(16px, 4.5vmin, 56px);
+  margin-bottom: 0.3vmin;
+}
+.dock-grid[data-layout="6"] .dc-placa   { font-size: clamp(10px, 2.2vmin, 28px); }
+.dock-grid[data-layout="6"] .dc-info    { font-size: clamp(7px, 1.3vmin, 16px); }
+.dock-grid[data-layout="6"] .dc-livre   { font-size: clamp(11px, 2.8vmin, 36px); }
+
+/* ── LAYOUT 8 — grade 4×2, bem compacto ─────────────────────────── */
+.dock-grid[data-layout="8"] { gap: 2px; }
+.dock-grid[data-layout="8"] .dock-card   { padding: 1vmin 1.5vmin; }
+
+.dock-grid[data-layout="8"] .dc-status  {
+  font-size: clamp(6px, 1.1vmin, 12px);
+  padding: 0.2vmin 0.5vmin;
+  gap: 0.35vmin;
+}
+.dock-grid[data-layout="8"] .dc-dot     {
+  width: 0.5vmin;
+  height: 0.5vmin;
+  min-width: 5px;
+  min-height: 5px;
+}
+.dock-grid[data-layout="8"] .dc-numero  { font-size: clamp(7px, 1.3vmin, 15px); }
+.dock-grid[data-layout="8"] .dc-motorista {
+  font-size: clamp(12px, 3.2vmin, 40px);
+  margin-bottom: 0.25vmin;
+}
+.dock-grid[data-layout="8"] .dc-placa   { font-size: clamp(9px, 1.8vmin, 22px); }
+.dock-grid[data-layout="8"] .dc-info    { font-size: clamp(6px, 1.1vmin, 13px); }
+.dock-grid[data-layout="8"] .dc-livre   { font-size: clamp(9px, 2.2vmin, 28px); }
+
+/* ── LAYOUT 12 — grade 4×3, máxima compressão ───────────────────── */
+/* Gap mínimo: a linha de separação serve de grade visual             */
+.dock-grid[data-layout="12"] { gap: 1px; }
+.dock-grid[data-layout="12"] .dock-card   { padding: 0.8vmin 1.2vmin; }
+
+.dock-grid[data-layout="12"] .dc-status  {
+  font-size: clamp(0px, 0px, 0px); /* oculto via font-size zero */
+  padding: 0.18vmin 0.4vmin;
+  gap: 0.3vmin;
+  /* mostra apenas o dot — texto some */
+}
+/* Ocultar o texto do badge mas preservar o dot colorido */
+.dock-grid[data-layout="12"] .dc-status span:last-child { display: none; }
+
+.dock-grid[data-layout="12"] .dc-dot     {
+  width: 1.2vmin;
+  height: 1.2vmin;
+  min-width: 7px;
+  min-height: 7px;
+}
+.dock-grid[data-layout="12"] .dc-numero  { font-size: clamp(6px, 1.1vmin, 13px); }
+.dock-grid[data-layout="12"] .dc-motorista {
+  font-size: clamp(10px, 2.4vmin, 30px);
+  margin-bottom: 0.2vmin;
+}
+.dock-grid[data-layout="12"] .dc-placa   { font-size: clamp(8px, 1.5vmin, 18px); }
+/* .dc-info oculto em layout 12 — espaço insuficiente, dado terciário */
+.dock-grid[data-layout="12"] .dc-info    { display: none; }
+.dock-grid[data-layout="12"] .dc-livre   { font-size: clamp(8px, 1.8vmin, 22px); }
+
+/* ── FULLSCREEN — independente do layout, tamanhos máximos ────────── */
+/* O card fullscreen usa position:fixed, saindo do fluxo do grid.
+   Nenhum seletor de layout o afeta. Reforçamos aqui explicitamente
+   para garantir que variações de especificidade não quebrem estes valores. */
+.dock-card.fullscreen .dc-numero    { font-size: clamp(14px, 3vmin, 36px) !important; }
+.dock-card.fullscreen .dc-status    {
+  font-size: clamp(12px, 2.2vmin, 28px) !important;
+  padding: 0.6vmin 1.4vmin !important;
+  max-width: 90% !important;
+}
+/* Garante que o texto do status reaparece no fullscreen mesmo no layout 12 */
+.dock-card.fullscreen .dc-status span:last-child { display: inline !important; }
+.dock-card.fullscreen .dc-dot {
+  width: 0.9vmin !important;
+  height: 0.9vmin !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
+}
+.dock-card.fullscreen .dc-motorista { font-size: clamp(48px, 14vmin, 180px) !important; line-height: 1 !important; }
+.dock-card.fullscreen .dc-placa     { font-size: clamp(20px, 5vmin, 64px) !important; }
+.dock-card.fullscreen .dc-info      { font-size: clamp(14px, 2.5vmin, 32px) !important; display: block !important; }
+.dock-card.fullscreen .dc-livre     { font-size: clamp(28px, 6vmin, 76px) !important; }

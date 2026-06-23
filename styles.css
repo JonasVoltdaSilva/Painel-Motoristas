@@ -172,12 +172,16 @@ body {
   padding: 1.8vmin 2.4vmin 2vmin;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 0;
-  border-left: 3px solid var(--card-accent, var(--border-default));
+  border: 2px solid var(--card-accent, var(--border-default));
+  box-shadow: inset 0 0 0 1px rgba(var(--card-accent-rgb, 72, 72, 72), 0.15);
   position: relative;
   overflow: hidden;
   transition:
-    border-left-color var(--transition-slow),
+    border-color var(--transition-slow),
     background var(--transition-slow);
 }
 
@@ -225,6 +229,57 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════════════
+   FULLSCREEN CARD — animação de chamada de doca
+   Quando uma doca é atualizada, o card expande para 100% da viewport
+   por 10 segundos exibindo as informações em tamanho grande (FIDS).
+   position: fixed retira o card do fluxo normal — o grid permanece
+   visível atrás com o espaço vazio (comportamento aceitável para TV).
+   ════════════════════════════════════════════════════════════════════ */
+@keyframes expand-to-full {
+  from {
+    transform: scale(0.5);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shrink-from-full {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+}
+
+.dock-card.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border-width: 4px;
+  animation: expand-to-full 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.dock-card.fullscreen.saindo {
+  animation: shrink-from-full 0.35s ease-in forwards;
+}
+
+.dock-card.fullscreen .dc-numero    { font-size: clamp(14px, 3vmin, 36px); }
+.dock-card.fullscreen .dc-status    { font-size: clamp(12px, 2.2vmin, 28px); padding: 0.6vmin 1.4vmin; max-width: 90%; }
+.dock-card.fullscreen .dc-motorista { font-size: clamp(48px, 14vmin, 180px); line-height: 1; }
+.dock-card.fullscreen .dc-placa     { font-size: clamp(20px, 5vmin, 64px); }
+.dock-card.fullscreen .dc-info      { font-size: clamp(14px, 2.5vmin, 32px); }
+.dock-card.fullscreen .dc-livre     { font-size: clamp(28px, 6vmin, 76px); }
+
+/* ════════════════════════════════════════════════════════════════════
    CONTEÚDO DO CARD — Hierarquia tipográfica
 
    Referência: fórmula de legibilidade para TV a 4-6m:
@@ -236,23 +291,15 @@ body {
    a DIN — aprovada em sinalização rodoviária europeia por legibilidade
    superior em leituras rápidas (Kinneir & Calvert research, 1960s).
    ════════════════════════════════════════════════════════════════════ */
-.dc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1vmin;
-  margin-bottom: 1.2vmin;
-}
-
 /* Número da doca: identificador discreto mas imediato.
    Muted para não competir com o nome, mas legível. */
 .dc-numero {
-  font-size: clamp(10px, 1.5vmin, 18px);
+  font-size: clamp(10px, 2.2vmin, 22px);
   font-weight: 700;
   letter-spacing: 0.18em;
   color: var(--text-tertiary);
   white-space: nowrap;
-  padding-top: 0.1vmin; /* alinhamento visual com o badge */
+  margin-bottom: 0.5vmin;
 }
 
 /* Badge de status: substituição do dot isolado por uma pill completa.
@@ -264,7 +311,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5vmin;
-  font-size: clamp(8px, 1.2vmin, 13px);
+  font-size: clamp(8px, 1.6vmin, 16px);
   font-weight: 700;
   letter-spacing: 0.07em;
   color: var(--card-accent, var(--text-secondary));
@@ -273,10 +320,11 @@ body {
   border-radius: 3px;
   padding: 0.3vmin 0.7vmin;
   white-space: nowrap;
-  max-width: 58%;
+  max-width: 80%;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 1;
+  margin-bottom: 1vmin;
 }
 
 /* Dot dentro do badge: menor, animação preservada */
@@ -305,13 +353,13 @@ body {
    weight 800 + uppercase → máxima densidade de traço, ideal para
    displays iluminados em ambientes industriais com luz adversa. */
 .dc-motorista {
-  font-size: clamp(22px, 5.8vmin, 72px);
+  font-size: clamp(22px, 7vmin, 88px);
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1.0;
   word-break: break-word;
-  margin-top: 0.4vmin;
-  margin-bottom: 0.6vmin;
+  margin-top: 0.6vmin;
+  margin-bottom: 0.5vmin;
   /* Sutil sombra de texto para separar do tint de fundo */
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
@@ -322,7 +370,7 @@ body {
    letter-spacing 0.2em → padrão de placas brasileiras */
 .dc-placa {
   font-family: var(--font-mono);
-  font-size: clamp(12px, 2.3vmin, 28px);
+  font-size: clamp(12px, 3vmin, 36px);
   font-weight: 700;
   letter-spacing: 0.2em;
   color: var(--card-accent);
@@ -333,7 +381,7 @@ body {
    Muted mas presente — operadores de doca precisam desta info
    para preparação de equipamentos (paleteira, empilhadeira). */
 .dc-info {
-  font-size: clamp(9px, 1.3vmin, 15px);
+  font-size: clamp(9px, 1.8vmin, 20px);
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
@@ -346,14 +394,11 @@ body {
    mas é imediatamente compreensível para operadores que varrem
    o painel buscando docas disponíveis. */
 .dc-livre {
-  font-size: clamp(14px, 2.6vmin, 32px);
+  font-size: clamp(14px, 3.5vmin, 42px);
   font-weight: 600;
   color: var(--text-tertiary);
   letter-spacing: 0.35em;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-top: 1vmin;
   opacity: 0.45;
 }
 
@@ -613,9 +658,11 @@ body {
    de blink, pulse e glow que podem causar desconforto.
    ════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .dc-dot            { animation: none; opacity: 1; }
-  .glow-overlay.ativo { animation: none; opacity: 0; }
-  .dock-card.expandir { animation: none; }
+  .dc-dot              { animation: none; opacity: 1; }
+  .glow-overlay.ativo  { animation: none; opacity: 0; }
+  .dock-card.expandir  { animation: none; }
+  .dock-card.fullscreen        { animation: none; }
+  .dock-card.fullscreen.saindo { animation: none; opacity: 0; }
   *,
   *::before,
   *::after { transition-duration: 0.01ms !important; }

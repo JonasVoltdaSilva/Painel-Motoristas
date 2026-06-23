@@ -119,14 +119,35 @@
 
     // ── ANIMAR DOCAS ──
     function animarDocas(ids) {
-      ids.forEach(id => {
-        const card = document.querySelector(`.dock-card[data-id="${id}"]`);
-        if (!card) return;
-        card.classList.remove("expandir");
-        void card.offsetWidth;
-        card.classList.add("expandir");
-        card.addEventListener("animationend", () => card.classList.remove("expandir"), { once: true });
+      if (!ids.length) return;
+
+      // Animação pulse simples para todos os demais cards alterados
+      ids.slice(1).forEach(otherId => {
+        const other = document.querySelector(`.dock-card[data-id="${otherId}"]`);
+        if (!other) return;
+        other.classList.remove("expandir");
+        void other.offsetWidth;
+        other.classList.add("expandir");
+        other.addEventListener("animationend", () => other.classList.remove("expandir"), { once: true });
       });
+
+      // Fullscreen para o primeiro card alterado visível
+      const id   = ids[0];
+      const card = document.querySelector(`.dock-card[data-id="${id}"]`);
+      if (!card) return;
+
+      // Evita sobrepor um fullscreen em andamento no mesmo card
+      if (card.classList.contains("fullscreen")) return;
+
+      card.classList.add("fullscreen");
+
+      // Após 10 segundos inicia animação de saída
+      setTimeout(() => {
+        card.classList.add("saindo");
+        card.addEventListener("animationend", () => {
+          card.classList.remove("fullscreen", "saindo");
+        }, { once: true });
+      }, 10000);
     }
 
     // ── RENDER GRID ──
@@ -143,12 +164,10 @@
         const sufixo    = d.paletizada ? " · PALETIZADA" : (d.tipo ? " · NÃO PALETIZADA" : "");
         return `<article class="dock-card" data-id="${id}" data-status="${statusCls}"
                          aria-label="Doca ${id}: ${statusTxt}">
-          <div class="dc-header">
-            <span class="dc-numero">DOCA ${id}</span>
-            <div class="dc-status">
-              <span class="dc-dot" aria-hidden="true"></span>
-              <span>${statusTxt}</span>
-            </div>
+          <span class="dc-numero">DOCA ${id}</span>
+          <div class="dc-status">
+            <span class="dc-dot" aria-hidden="true"></span>
+            <span>${statusTxt}</span>
           </div>
           ${vazio
             ? `<p class="dc-livre">DOCA LIVRE</p>`

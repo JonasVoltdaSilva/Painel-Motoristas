@@ -169,11 +169,10 @@ body {
    ════════════════════════════════════════════════════════════════════ */
 .dock-card {
   background: var(--surface-card);
-  padding: 1.8vmin 2.4vmin 2vmin;
+  padding: 2vmin 2.4vmin;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
   gap: 0;
   border: 2px solid var(--card-accent, var(--border-default));
@@ -299,7 +298,8 @@ body {
   letter-spacing: 0.18em;
   color: var(--text-tertiary);
   white-space: nowrap;
-  margin-bottom: 0.5vmin;
+  /* margin-bottom: auto empurra o nome do motorista para o centro do espaço restante */
+  margin-bottom: auto;
 }
 
 /* Badge de status: substituição do dot isolado por uma pill completa.
@@ -324,7 +324,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 1;
-  margin-bottom: 1vmin;
+  margin-bottom: 0.4vmin; /* pequeno espaço entre status e número da doca */
 }
 
 /* Dot dentro do badge: menor, animação preservada */
@@ -358,7 +358,7 @@ body {
   color: #FFFFFF;
   line-height: 1.0;
   word-break: break-word;
-  margin-top: 0.6vmin;
+  margin-top: 0;
   margin-bottom: 0.5vmin;
   /* Sutil sombra de texto para separar do tint de fundo */
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
@@ -385,7 +385,8 @@ body {
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
-  margin-top: 0.5vmin;
+  margin-top: 0.3vmin;
+  margin-bottom: auto; /* equilibra o espaço abaixo com o espaço acima do nome */
   opacity: 0.75;
 }
 
@@ -398,7 +399,8 @@ body {
   font-weight: 600;
   color: var(--text-tertiary);
   letter-spacing: 0.35em;
-  margin-top: 1vmin;
+  margin-top: auto;
+  margin-bottom: auto;
   opacity: 0.45;
 }
 
@@ -440,13 +442,19 @@ body {
 }
 
 .history-item {
-  font-size: clamp(9px, 1.2vmin, 14px);
+  font-size: clamp(11px, 1.6vmin, 18px);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
+}
+
+.history-vazio {
+  color: var(--text-tertiary);
+  font-style: italic;
+  letter-spacing: 0.15em;
 }
 
 .hi-time   { color: var(--text-tertiary); }

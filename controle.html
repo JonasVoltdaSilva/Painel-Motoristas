@@ -144,6 +144,22 @@
   <script src="script.js"></script>
   <script>
     // ════════════════════════════════════════════════════
+    // CONTROLE — variáveis globais (devem vir antes de initAuth)
+    // ════════════════════════════════════════════════════
+    let estado    = carregar();
+    let docaAtiva = "1";
+    let _timer         = null;
+    let _temAlteracoes = false;
+
+    const CAMPOS = {
+      "in-status":    "status",
+      "in-motorista": "motorista",
+      "in-placa":     "placa",
+      "in-veiculo":   "veiculo",
+      "in-tipo":      "tipo",
+    };
+
+    // ════════════════════════════════════════════════════
     // AUTH ADMIN
     // ════════════════════════════════════════════════════
     async function tentarLoginAdmin() {
@@ -170,12 +186,6 @@
       document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLoginAdmin(); };
       setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
     })();
-
-    // ════════════════════════════════════════════════════
-    // CONTROLE
-    // ════════════════════════════════════════════════════
-    let estado    = carregar();
-    let docaAtiva = "1";
 
     function iniciarControle() {
       // Indicador Firebase
@@ -215,15 +225,6 @@
         });
       });
     }
-
-    // ── Campos da doca ativa ──
-    const CAMPOS = {
-      "in-status":    "status",
-      "in-motorista": "motorista",
-      "in-placa":     "placa",
-      "in-veiculo":   "veiculo",
-      "in-tipo":      "tipo",
-    };
 
     function docaAtual() {
       if (!estado.docas) estado.docas = {};
@@ -338,9 +339,6 @@
     }
 
     // ── Status de edição / publicação ──
-    let _timer         = null;
-    let _temAlteracoes = false;
-
     function marcarPendente() {
       _temAlteracoes = true;
       const el = document.getElementById("ctrl-status");

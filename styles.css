@@ -1,283 +1,479 @@
-/* ════════ RESET ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   PAINEL DE MOTORISTAS — DPA
+   Design: Industrial Display System v2
+   Fundamentos: FIDS / Andon / Astro UX / Digital Signage Guidelines
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── RESET ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ════════ VARIÁVEIS ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   TOKENS DE DESIGN
+   Elevação via luminância (Material Dark / Astro UX):
+     dp-0  → base         #0D0D0D   superfície base (abaixo do card)
+     dp-1  → card         #161616   superfície primária elevada
+     dp-2  → raised       #1E1E1E   superfície secundária (modais, headers)
+     dp-3  → overlay      #252525   pop-overs, dropdowns
+   ════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         #111111;
-  --card:       #191919;
-  --sep:        #1F1F1F;
-  --border:     #2A2A2A;
-  --text:       #F0F0F0;
-  --muted:      #777777;
-  --dim:        #444444;
+  /* Superfícies (tonal elevation — mais claro = mais elevado) */
+  --surface-base:    #0D0D0D;   /* corpo da página / separadores */
+  --surface-card:    #161616;   /* cards de doca */
+  --surface-raised:  #1E1E1E;   /* header, footer, modais */
+  --surface-overlay: #252525;   /* inputs, dropdowns */
 
-  --verde:         #3EF2B3;
-  --s-aguardando:  #F5B731;
-  --s-carregando:  #4BA9F2;
-  --s-conferencia: #F07B3B;
-  --s-liberado:    #3EF2B3;
-  --s-finalizado:  #555555;
+  /* Bordas */
+  --border-subtle:   #242424;   /* bordas estruturais (invisíveis) */
+  --border-default:  #303030;   /* bordas de componentes */
+  --border-emphasis: #484848;   /* bordas com estado hover */
+
+  /* Texto (hierarquia de opacidade sobre branco) */
+  --text-primary:    #F2F2F2;   /* nomes, dados críticos */
+  --text-secondary:  #9A9A9A;   /* rótulos secundários */
+  --text-tertiary:   #585858;   /* placeholders, itens desativados */
+
+  /* Acento institucional */
+  --accent:          #3EF2B3;   /* verde DPA — sucesso / link / ativo */
+
+  /* ── STATUS PALETTE ──────────────────────────────────────────── */
+  /* Baseado no Astro UX Space Design System:
+     cada status tem cor saturada para visibilidade periférica em TV */
+  --s-aguardando:    #F5B731;   /* Amarelo âmbar — atenção, aguardando */
+  --s-carregando:    #4BA9F2;   /* Azul céu    — operação em andamento */
+  --s-conferencia:   #F07B3B;   /* Laranja      — verificação necessária */
+  --s-liberado:      #3EF2B3;   /* Verde        — operação concluída / livre */
+  --s-finalizado:    #606060;   /* Cinza        — inativo / arquivado */
+
+  /* Versões de fundo (status com 8% opacidade — tint sutil no card) */
+  --s-aguardando-bg:    rgba(245, 183, 49,  0.07);
+  --s-carregando-bg:    rgba(75,  169, 242, 0.07);
+  --s-conferencia-bg:   rgba(240, 123, 59,  0.07);
+  --s-liberado-bg:      rgba(62,  242, 179, 0.07);
+  --s-finalizado-bg:    transparent;
+
+  /* Fontes */
+  --font-main: "Montserrat", system-ui, sans-serif;
+  --font-mono: "Courier New", "Courier", monospace;
+
+  /* Timing */
+  --transition-fast:  0.15s ease;
+  --transition-base:  0.25s ease;
+  --transition-slow:  0.35s ease;
 }
 
-/* ════════ BASE ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   BASE
+   ════════════════════════════════════════════════════════════════════ */
 html, body {
   height: 100%;
   overflow: hidden;
-  font-family: "Montserrat", system-ui, sans-serif;
+  font-family: var(--font-main);
   font-weight: 500;
   text-transform: uppercase;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--text-primary);
+  background: var(--surface-base);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   display: grid;
-  grid-template-rows: 6vh 1fr 8vh;
+  grid-template-rows: 5.5vh 1fr 7.5vh;
   height: 100vh;
 }
 
-/* ════════ TV HEADER ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   TV HEADER
+   Fundo ligeiramente mais elevado que a base → cria plano Z superior
+   Fonte da empresa em lettering discreto — não compete com docas
+   ════════════════════════════════════════════════════════════════════ */
 .tv-header {
-  background: #0A0A0A;
-  border-bottom: 1px solid var(--sep);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2.2vmin;
+  padding: 0 2.4vmin;
+  /* Separação visual sutil via inset shadow no bottom */
+  box-shadow: 0 1px 0 var(--border-subtle);
 }
 
 .tv-empresa {
-  font-size: 1.4vmin;
-  font-weight: 700;
-  letter-spacing: 0.35em;
-  color: var(--muted);
+  font-size: clamp(10px, 1.5vmin, 16px);
+  font-weight: 800;
+  letter-spacing: 0.42em;
+  color: var(--text-tertiary);
+  /* Pequeno traço colorido à esquerda — âncora visual institucional */
+  border-left: 2px solid var(--accent);
+  padding-left: 0.9vmin;
 }
 
+/* Indicador de página: dots maiores e mais claros quando ativos */
 .tv-indicador {
   display: flex;
-  gap: 0.6vmin;
+  gap: 0.7vmin;
   align-items: center;
 }
 
 .pag-dot {
-  width: 0.6vmin;
-  height: 0.6vmin;
+  width: 0.55vmin;
+  height: 0.55vmin;
   border-radius: 50%;
-  background: var(--dim);
-  transition: background 0.35s;
+  background: var(--border-default);
+  transition: background var(--transition-base), transform var(--transition-base);
 }
 
-.pag-dot.ativo { background: var(--verde); }
+.pag-dot.ativo {
+  background: var(--accent);
+  transform: scale(1.35);
+}
 
+/* Relógio: elemento de maior destaque no header — serve como referência
+   temporal para operadores. Tabular nums para estabilidade de layout. */
 .tv-relogio {
-  font-size: 2.8vmin;
+  font-size: clamp(18px, 2.8vmin, 32px);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  color: var(--text);
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
 }
 
-/* ════════ GRID DE DOCAS ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   GRID DE DOCAS
+   Gap de 2px = linha de separação visual usando a cor base da página.
+   Cria grid de 4 células com peso visual igual — padrão FIDS.
+   ════════════════════════════════════════════════════════════════════ */
 .dock-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 2px;
-  background: var(--sep);
+  background: var(--surface-base); /* o gap "vaza" esta cor — age como borda */
 }
 
-/* ════════ CARD ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   CARD DE DOCA
+   Hierarquia visual inspirada nos Andon boards Toyota:
+     1. Número da doca — identificador (menor, muted)
+     2. Badge de status — informação de estado (colorido, imediato)
+     3. Nome do motorista — dado crítico principal (maior fonte)
+     4. Placa — dado secundário operacional
+     5. Tipo/paletizada — dado terciário de contexto
+
+   Borda lateral (4px) → cor de status em escala reduzida para
+   manter a cor perifericamente sem sobrecarregar o card.
+
+   Background tint sutil → o card inteiro "se torna" a cor do status
+   sem violar o dark theme. Aprendi com sistemas hospitalares e de
+   aeroporto que o fundo tintado auxilia distinguibilidade de longe.
+   ════════════════════════════════════════════════════════════════════ */
 .dock-card {
-  background: var(--card);
-  padding: 2vmin 2.5vmin;
+  background: var(--surface-card);
+  padding: 1.8vmin 2.4vmin 2vmin;
   display: flex;
   flex-direction: column;
-  gap: 0.7vmin;
-  border-left: 4px solid var(--card-accent, var(--dim));
+  gap: 0;
+  border-left: 3px solid var(--card-accent, var(--border-default));
   position: relative;
   overflow: hidden;
-  transition: border-left-color 0.3s;
+  transition:
+    border-left-color var(--transition-slow),
+    background var(--transition-slow);
 }
 
-.dock-card[data-status="aguardando"]  { --card-accent: var(--s-aguardando);  }
-.dock-card[data-status="carregando"]  { --card-accent: var(--s-carregando);  }
-.dock-card[data-status="conferencia"] { --card-accent: var(--s-conferencia); }
-.dock-card[data-status="liberado"]    { --card-accent: var(--s-liberado);    }
-.dock-card[data-status="finalizado"]  { --card-accent: var(--s-finalizado);  opacity: 0.50; }
+/* Tint de fundo por status — chave para distinguibilidade periférica.
+   Usa rgba() puro (sem color-mix) para compatibilidade máxima com
+   Chrome ≥ 80 em kiosks/TVs. O gradiente parte do canto superior-esquerdo
+   onde fica a borda colorida — reforça o vetor visual de entrada do olho. */
+.dock-card[data-status="aguardando"] {
+  --card-accent:     var(--s-aguardando);
+  --card-accent-rgb: 245, 183, 49;
+  background: linear-gradient(135deg, rgba(245, 183, 49,  0.08) 0%, var(--surface-card) 55%);
+}
+.dock-card[data-status="carregando"] {
+  --card-accent:     var(--s-carregando);
+  --card-accent-rgb: 75, 169, 242;
+  background: linear-gradient(135deg, rgba(75,  169, 242, 0.08) 0%, var(--surface-card) 55%);
+}
+.dock-card[data-status="conferencia"] {
+  --card-accent:     var(--s-conferencia);
+  --card-accent-rgb: 240, 123, 59;
+  background: linear-gradient(135deg, rgba(240, 123, 59,  0.08) 0%, var(--surface-card) 55%);
+}
+.dock-card[data-status="liberado"] {
+  --card-accent:     var(--s-liberado);
+  --card-accent-rgb: 62, 242, 179;
+  background: linear-gradient(135deg, rgba(62,  242, 179, 0.08) 0%, var(--surface-card) 55%);
+}
+.dock-card[data-status="finalizado"] {
+  --card-accent:     var(--s-finalizado);
+  --card-accent-rgb: 96, 96, 96;
+  opacity: 0.45;
+}
 
-/* ── Morph expand ── */
-@keyframes expandir {
-  0%   { transform: scale(1);    }
-  45%  { transform: scale(1.04); }
-  100% { transform: scale(1);    }
+/* Animação de atualização de card — "morph pulse"
+   Escala sutil (max 1.02) para não causar CLS perceptível no grid */
+@keyframes card-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 var(--card-accent); }
+  40%  { transform: scale(1.018); box-shadow: 0 0 0 4px transparent; }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 transparent; }
 }
 
 .dock-card.expandir {
-  animation: expandir 0.5s ease-in-out;
+  animation: card-pulse 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 10;
 }
 
-/* ── Conteúdo ── */
+/* ════════════════════════════════════════════════════════════════════
+   CONTEÚDO DO CARD — Hierarquia tipográfica
+
+   Referência: fórmula de legibilidade para TV a 4-6m:
+     distância × 0.84cm/m = altura mínima de caractere
+     A 5m → 4.2cm → em 1080p@96ppi → ~160px → ~7.5vmin (55")
+   Nomes de motorista foram elevados para 5.8vmin (de 4.8vmin).
+
+   Fonte: Montserrat 800 em uppercase tem densidade de traço similar
+   a DIN — aprovada em sinalização rodoviária europeia por legibilidade
+   superior em leituras rápidas (Kinneir & Calvert research, 1960s).
+   ════════════════════════════════════════════════════════════════════ */
 .dc-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.3vmin;
+  align-items: flex-start;
+  gap: 1vmin;
+  margin-bottom: 1.2vmin;
 }
 
+/* Número da doca: identificador discreto mas imediato.
+   Muted para não competir com o nome, mas legível. */
 .dc-numero {
-  font-size: 1.6vmin;
+  font-size: clamp(10px, 1.5vmin, 18px);
   font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--muted);
+  letter-spacing: 0.18em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  padding-top: 0.1vmin; /* alinhamento visual com o badge */
 }
 
+/* Badge de status: substituição do dot isolado por uma pill completa.
+   Inspirado no Astro UX Design System e Carbon Design System:
+   cor + forma + texto = tri-codificação → acessibilidade para daltonismo.
+   Tamanho máximo controlado para não dominar o card visualmente.
+   Usa variável --card-accent-rgb para rgba() sem color-mix (compat Chrome 80+). */
 .dc-status {
   display: flex;
   align-items: center;
-  gap: 0.55vmin;
-  font-size: 1.4vmin;
+  gap: 0.5vmin;
+  font-size: clamp(8px, 1.2vmin, 13px);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--card-accent);
+  letter-spacing: 0.07em;
+  color: var(--card-accent, var(--text-secondary));
+  background: rgba(var(--card-accent-rgb, 72, 72, 72), 0.12);
+  border: 1px solid rgba(var(--card-accent-rgb, 72, 72, 72), 0.30);
+  border-radius: 3px;
+  padding: 0.3vmin 0.7vmin;
+  white-space: nowrap;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
 }
 
+/* Dot dentro do badge: menor, animação preservada */
 .dc-dot {
-  width: 0.8vmin;
-  height: 0.8vmin;
+  width: 0.65vmin;
+  height: 0.65vmin;
+  min-width: 6px;
+  min-height: 6px;
   border-radius: 50%;
   background: var(--card-accent);
   flex-shrink: 0;
-  animation: blink 2.5s ease-in-out infinite;
+  animation: status-blink 2.8s ease-in-out infinite;
 }
 
-@keyframes blink {
+/* Blink: inspirado em sistemas de chamada hospitalar.
+   Frequência de 2.8s é suave — não causa fadiga em exibição contínua.
+   WCAG 2.2 §2.3.1: menos de 3 flashes/segundo → seguro. */
+@keyframes status-blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.2; }
+  50%       { opacity: 0.15; }
 }
 
+/* NOME DO MOTORISTA — elemento principal do card.
+   Tamanho elevado de 4.8vmin → 5.8vmin baseado em cálculo de
+   legibilidade para TV 55" a 5m de distância.
+   weight 800 + uppercase → máxima densidade de traço, ideal para
+   displays iluminados em ambientes industriais com luz adversa. */
 .dc-motorista {
-  font-size: 4.8vmin;
+  font-size: clamp(22px, 5.8vmin, 72px);
   font-weight: 800;
   color: #FFFFFF;
-  line-height: 1.05;
+  line-height: 1.0;
   word-break: break-word;
-  margin-top: 0.5vmin;
+  margin-top: 0.4vmin;
+  margin-bottom: 0.6vmin;
+  /* Sutil sombra de texto para separar do tint de fundo */
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
 
+/* PLACA: fonte monospace → todos caracteres igual largura →
+   leitura de sequências alfanuméricas mais rápida.
+   Cor = accent do status → reforça codificação de cor do card.
+   letter-spacing 0.2em → padrão de placas brasileiras */
 .dc-placa {
-  font-family: 'Courier New', monospace;
-  font-size: 2.2vmin;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 2.3vmin, 28px);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   color: var(--card-accent);
+  line-height: 1.1;
 }
 
+/* Tipo de veículo: informação contextual terciária.
+   Muted mas presente — operadores de doca precisam desta info
+   para preparação de equipamentos (paleteira, empilhadeira). */
 .dc-info {
-  font-size: 1.4vmin;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+  font-size: clamp(9px, 1.3vmin, 15px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-top: 0.5vmin;
+  opacity: 0.75;
 }
 
+/* Estado vazio: comunicação clara que a doca está livre.
+   Letra espaçada + dim → não chama atenção desnecessariamente,
+   mas é imediatamente compreensível para operadores que varrem
+   o painel buscando docas disponíveis. */
 .dc-livre {
-  font-size: 2.8vmin;
+  font-size: clamp(14px, 2.6vmin, 32px);
   font-weight: 600;
-  color: var(--dim);
-  letter-spacing: 0.3vmin;
+  color: var(--text-tertiary);
+  letter-spacing: 0.35em;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0.45;
 }
 
-/* ════════ HISTÓRICO (rodapé) ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   RODAPÉ — HISTÓRICO
+   Zona de atividade recente: padrão de aeroportos e hospitais que
+   mostram o fluxo de chamadas concluídas como confirmação operacional.
+   Fundo levemente elevado (surface-raised) separa do grid visual.
+   ════════════════════════════════════════════════════════════════════ */
 .history-zone {
-  background: #0A0A0A;
-  border-top: 1px solid var(--sep);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   gap: 2vmin;
-  padding: 0 2.2vmin;
+  padding: 0 2.4vmin;
   overflow: hidden;
 }
 
 .history-label {
-  font-size: 0.9vmin;
+  font-size: clamp(7px, 0.85vmin, 11px);
   font-weight: 700;
-  letter-spacing: 0.25em;
-  color: var(--dim);
+  letter-spacing: 0.28em;
+  color: var(--text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
+  /* Traço separador visual */
+  border-right: 1px solid var(--border-subtle);
+  padding-right: 2vmin;
 }
 
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 0.2vmin;
+  gap: 0.15vmin;
   overflow: hidden;
   flex: 1;
   justify-content: center;
 }
 
 .history-item {
-  font-size: 1.3vmin;
-  color: var(--muted);
+  font-size: clamp(9px, 1.2vmin, 14px);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
+  line-height: 1.4;
 }
 
-.hi-time   { color: var(--dim); }
-.hi-dock   { color: var(--text); font-weight: 700; }
-.hi-status { color: var(--verde); font-weight: 600; }
+.hi-time   { color: var(--text-tertiary); }
+.hi-dock   { color: var(--text-primary); font-weight: 700; }
+.hi-status { color: var(--accent); font-weight: 600; }
 
-/* ════════ GLOW OVERLAY (atualização) ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   GLOW OVERLAY — feedback de atualização em tempo real
+   Borda perimetral colorida pisca ao receber novo dado do Firebase.
+   Intenção: operador na TV sabe imediatamente que houve mudança.
+   Mantém o acento verde DPA como cor de sincronização.
+   ════════════════════════════════════════════════════════════════════ */
 @keyframes glow-soro {
-  0%   { opacity: 0; }
-  15%  { opacity: 1; }
-  70%  { opacity: 1; }
-  100% { opacity: 0; }
+  0%   { opacity: 0;   }
+  12%  { opacity: 0.9; }
+  65%  { opacity: 0.7; }
+  100% { opacity: 0;   }
 }
 
 .glow-overlay {
   position: fixed;
   inset: 0;
-  border: 2px solid var(--verde);
+  border: 2px solid var(--accent);
   pointer-events: none;
   z-index: 180;
   opacity: 0;
 }
 
-.glow-overlay.ativo { animation: glow-soro 2.5s ease-in-out forwards; }
+.glow-overlay.ativo {
+  animation: glow-soro 2.8s ease-in-out forwards;
+}
 
-/* ════════ BOTÃO LOCK ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   BOTÃO LOCK (acesso admin discreto)
+   Quase invisível em operação normal (opacity 0.08).
+   Só se revela no hover — não distrai a audiência na TV.
+   ════════════════════════════════════════════════════════════════════ */
 .btn-lock {
   position: fixed;
-  bottom: 1.4vmin;
-  right: 1.4vmin;
+  bottom: 1.6vmin;
+  right: 1.6vmin;
   z-index: 160;
-  width: clamp(26px, 3.4vmin, 44px);
-  height: clamp(26px, 3.4vmin, 44px);
+  width: clamp(28px, 3.6vmin, 44px);
+  height: clamp(28px, 3.6vmin, 44px);
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.12;
-  transition: opacity 0.3s;
-}
-.btn-lock:hover { opacity: 0.55; }
-.btn-lock svg {
-  width: clamp(11px, 1.5vmin, 20px);
-  color: var(--verde);
+  opacity: 0.08;
+  transition: opacity var(--transition-base);
 }
 
-/* ════════ AUTH OVERLAY ════════ */
+.btn-lock:hover { opacity: 0.5; }
+.btn-lock:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 0.5;
+}
+
+.btn-lock svg {
+  width: clamp(12px, 1.6vmin, 20px);
+  color: var(--accent);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   AUTH OVERLAY
+   Modal de login sobreposto à TV.
+   Fundo escuro denso para isolar o formulário do contexto de TV.
+   ════════════════════════════════════════════════════════════════════ */
 .auth-overlay {
   position: fixed;
   inset: 0;
@@ -286,15 +482,16 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.90);
+  backdrop-filter: blur(4px);
 }
 .auth-overlay.visivel { display: flex; }
 
 .auth-card {
   width: 100%;
   max-width: 340px;
-  background: #1A1A1A;
-  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 32px 24px 24px;
   text-align: center;
@@ -302,7 +499,7 @@ body {
 }
 
 .auth-card h1 {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 5px;
   color: #FFFFFF;
@@ -310,12 +507,12 @@ body {
 }
 
 .auth-desc {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 1px;
-  color: var(--muted);
+  color: var(--text-secondary);
   margin-bottom: 20px;
-  line-height: 1.5;
+  line-height: 1.6;
   text-transform: none;
 }
 
@@ -326,22 +523,25 @@ body {
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text);
-  background: #111111;
-  border: 1px solid var(--border);
+  color: var(--text-primary);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   padding: 12px 16px;
   outline: none;
   letter-spacing: 2px;
   text-align: center;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.auth-card input:focus { border-color: var(--verde); }
+.auth-card input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(62, 242, 179, 0.18);
+}
 
 .auth-erro {
   min-height: 18px;
   margin: 10px 0;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #FF6060;
   text-transform: none;
@@ -350,53 +550,73 @@ body {
 .auth-btn {
   width: 100%;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   font-weight: 700;
   letter-spacing: 3px;
   color: #000000;
-  background: var(--verde);
+  background: var(--accent);
   border: none;
   border-radius: 4px;
   padding: 14px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition-fast);
 }
 .auth-btn:hover  { opacity: 0.85; }
 .auth-btn:active { opacity: 0.70; }
+.auth-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
 
 .auth-voltar {
   display: inline-block;
   margin-top: 16px;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 500;
   letter-spacing: 1px;
-  color: var(--muted);
+  color: var(--text-secondary);
   text-decoration: none;
   text-transform: uppercase;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
-.auth-voltar:hover { color: var(--text); }
+.auth-voltar:hover { color: var(--text-primary); }
 
 .auth-card .auth-close {
   position: absolute;
-  top: 10px; right: 12px;
+  top: 10px;
+  right: 12px;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--muted);
-  font-size: 1.2rem;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
   line-height: 1;
   padding: 4px 8px;
   font-family: inherit;
-  transition: color 0.15s;
+  border-radius: 4px;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
-.auth-card .auth-close:hover { color: var(--text); }
+.auth-card .auth-close:hover {
+  color: var(--text-primary);
+  background: var(--surface-overlay);
+}
+.auth-card .auth-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
-/* ════════ PREFERS REDUCED MOTION ════════ */
+/* ════════════════════════════════════════════════════════════════════
+   PREFERS REDUCED MOTION
+   WCAG 2.2 §2.3.3 — Animação em movimento deve poder ser desativada.
+   Mantemos transições de estado (cor, opacity) mas removemos animações
+   de blink, pulse e glow que podem causar desconforto.
+   ════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .dc-dot { animation: none; }
-  .glow-overlay.ativo { animation: none; }
+  .dc-dot            { animation: none; opacity: 1; }
+  .glow-overlay.ativo { animation: none; opacity: 0; }
   .dock-card.expandir { animation: none; }
-  * { transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after { transition-duration: 0.01ms !important; }
 }

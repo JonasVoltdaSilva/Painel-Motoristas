@@ -29,27 +29,13 @@
   <!-- ── TV HEADER ── -->
   <header class="tv-header">
     <span class="tv-empresa">DPA</span>
-    <div class="tv-header-mid">
-      <div class="tv-indicador" id="tv-indicador" aria-label="Página atual" role="group"></div>
-      <div class="tv-layout-btns" aria-label="Layout de docas por página">
-        <button class="tv-layout-btn" data-n="2"  title="2 docas">2</button>
-        <button class="tv-layout-btn" data-n="4"  title="4 docas">4</button>
-        <button class="tv-layout-btn" data-n="6"  title="6 docas">6</button>
-        <button class="tv-layout-btn" data-n="8"  title="8 docas">8</button>
-        <button class="tv-layout-btn" data-n="12" title="12 docas">12</button>
-      </div>
-    </div>
+    <div class="tv-indicador" id="tv-indicador" aria-label="Página atual" role="group"></div>
     <time id="relogio-tv" class="tv-relogio" aria-label="Horário atual"></time>
   </header>
 
   <!-- ── GRID DE DOCAS ── -->
   <main class="dock-grid" id="dock-grid" data-layout="4" aria-label="Status das docas"></main>
 
-  <!-- ── HISTÓRICO ── -->
-  <footer class="history-zone">
-    <span class="history-label">Histórico</span>
-    <div class="history-list" id="campo-historico" aria-live="polite" aria-label="Histórico de atendimentos"></div>
-  </footer>
 
   <!-- ── GLOW DE ATUALIZAÇÃO ── -->
   <div class="glow-overlay" id="glow-overlay" aria-hidden="true"></div>
@@ -155,17 +141,13 @@
     );
 
     // ── ANIMAR DOCAS ──
-    const _docasExpandidas = new Set(); // cada doca expande só uma vez por sessão
-
+    // Toda publicação aciona fullscreen + som (sem restrição por sessão)
     function animarDocas(ids) {
       if (!ids.length) return;
 
-      // Primeiro id que ainda não expandiu → fullscreen
-      const fullscreenId = ids.find(id => !_docasExpandidas.has(id)) || null;
-
-      ids.forEach(id => {
-        if (id === fullscreenId) return; // tratado abaixo
-        const other = document.querySelector(`.dock-card[data-id="${id}"]`);
+      // Pulso nos cards que não são o principal
+      ids.slice(1).forEach(otherId => {
+        const other = document.querySelector(`.dock-card[data-id="${otherId}"]`);
         if (!other) return;
         other.classList.remove("expandir");
         void other.offsetWidth;
@@ -173,14 +155,20 @@
         other.addEventListener("animationend", () => other.classList.remove("expandir"), { once: true });
       });
 
-      if (!fullscreenId) return;
-      const card = document.querySelector(`.dock-card[data-id="${fullscreenId}"]`);
-      if (!card || card.classList.contains("fullscreen")) return;
+      // Fullscreen no primeiro card publicado
+      const id   = ids[0];
+      const card = document.querySelector(`.dock-card[data-id="${id}"]`);
+      if (!card) return;
 
-      _docasExpandidas.add(fullscreenId);
-      card.classList.add("fullscreen");
+      // Se já está em fullscreen: reinicia o timer de 25s
+      if (card.classList.contains("fullscreen")) {
+        card.classList.remove("saindo");
+        clearTimeout(card._fsTimer);
+      } else {
+        card.classList.add("fullscreen");
+      }
 
-      setTimeout(() => {
+      card._fsTimer = setTimeout(() => {
         card.classList.add("saindo");
         card.addEventListener("animationend", () => {
           card.classList.remove("fullscreen", "saindo");
@@ -231,19 +219,6 @@
           `<span class="pag-dot${i === _paginaAtual ? " ativo" : ""}"></span>`
         ).join("");
 
-      // Histórico — últimos 6
-      const itensHist = (estado.historico || []).slice(0, 6);
-      document.getElementById("campo-historico").innerHTML = itensHist.length
-        ? itensHist.map(h =>
-            `<div class="history-item">
-              <span class="hi-time">${formatarHora(h.ts)}</span>
-              &nbsp;·&nbsp;<span class="hi-dock">D${String(h.doca).padStart(2,"0")}</span>
-              &nbsp;·&nbsp;<span class="hi-name">${h.motorista || ""}</span>
-              &nbsp;·&nbsp;<span class="hi-plate">${h.placa || ""}</span>
-              &nbsp;·&nbsp;<span class="hi-status">${h.status || ""}</span>
-            </div>`
-          ).join("")
-        : `<div class="history-item history-vazio">SEM REGISTROS</div>`;
     }
 
     // ── ROTAÇÃO AUTOMÁTICA (6s por página) ──
@@ -340,10 +315,13 @@
       iniciarPainel();
       iniciarRelogio();
 
-      // Botões de layout
-      document.querySelectorAll(".tv-layout-btn").forEach(btn => {
-        if (Number(btn.dataset.n) === _layout) btn.classList.add("ativo");
-        btn.addEventListener("click", () => setLayout(Number(btn.dataset.n)));
+      // Recebe mudança de layout do painel admin (mesma aba ou outro dispositivo via storage)
+      try {
+        const bcLayout = new BroadcastChannel("painel-layout");
+        bcLayout.onmessage = (e) => { if (typeof e.data === "number") setLayout(e.data); };
+      } catch {}
+      window.addEventListener("storage", (e) => {
+        if (e.key === "painel-layout" && e.newValue) setLayout(parseInt(e.newValue));
       });
 
       if (!isKiosk) {

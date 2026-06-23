@@ -110,13 +110,16 @@
       </div>
     </section>
 
-    <!-- HISTÓRICO RECENTE -->
+    <!-- LAYOUT DO PAINEL -->
     <section class="ctrl-card">
-      <div class="ctrl-card-header">
-        <h2>Histórico recente</h2>
-        <button class="btn btn-sm" id="add-historico" type="button">+ Adicionar</button>
+      <h2>Layout do painel (docas por tela)</h2>
+      <div class="ctrl-layout-btns">
+        <button class="ctrl-layout-btn" data-n="2">2</button>
+        <button class="ctrl-layout-btn" data-n="4">4</button>
+        <button class="ctrl-layout-btn" data-n="6">6</button>
+        <button class="ctrl-layout-btn" data-n="8">8</button>
+        <button class="ctrl-layout-btn" data-n="12">12</button>
       </div>
-      <div id="hist-lista" class="hist-lista"></div>
     </section>
 
     <!-- AÇÕES -->
@@ -198,7 +201,7 @@
       vincularTabs();
       preencher();
       vincularCampos();
-      vincularHistorico();
+      vincularLayout();
       vincularAcoes();
 
       inscrever((novo) => { if (!_temAlteracoes) { estado = novo; preencher(); } });
@@ -235,7 +238,6 @@
         if (el) el.value = d[key] || "";
       });
       document.getElementById("in-paletizada").checked = !!d.paletizada;
-      renderHistorico();
     }
 
     function vincularCampos() {
@@ -257,43 +259,29 @@
       });
     }
 
-    // ── Histórico ──
-    function renderHistorico() {
-      const cont = document.getElementById("hist-lista");
-      cont.innerHTML = (estado.historico || []).slice(0, 10).map((h, i) => `
-        <div class="hist-item">
-          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca || ""}"      placeholder="D" maxlength="1" />
-          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista || ""}" placeholder="NOME" />
-          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status || ""}"    placeholder="STATUS" />
-          <button class="hist-rm" data-i="${i}" type="button" title="Remover">×</button>
-        </div>
-      `).join("");
+    // ── Layout do painel ──
+    function vincularLayout() {
+      const LAYOUTS = [2, 4, 6, 8, 12];
+      let layoutAtual = parseInt(localStorage.getItem("painel-layout") || "4");
+      if (!LAYOUTS.includes(layoutAtual)) layoutAtual = 4;
 
-      cont.querySelectorAll("input").forEach((inp) => {
-        inp.addEventListener("input", () => {
-          const i = +inp.dataset.i, k = inp.dataset.k;
-          let v = inp.value;
-          if (k === "motorista" || k === "status") { v = v.toUpperCase(); inp.value = v; }
-          estado.historico[i][k] = v;
-          marcarPendente();
-        });
-      });
+      function aplicarLayout(n) {
+        layoutAtual = n;
+        localStorage.setItem("painel-layout", String(n));
+        document.querySelectorAll(".ctrl-layout-btn").forEach(b =>
+          b.classList.toggle("ativo", Number(b.dataset.n) === n)
+        );
+        // Notifica TV via BroadcastChannel (mesma origem)
+        try {
+          const bc = new BroadcastChannel("painel-layout");
+          bc.postMessage(n);
+          bc.close();
+        } catch {}
+      }
 
-      cont.querySelectorAll(".hist-rm").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          estado.historico.splice(+btn.dataset.i, 1);
-          renderHistorico();
-          marcarPendente();
-        });
-      });
-    }
-
-    function vincularHistorico() {
-      document.getElementById("add-historico").addEventListener("click", () => {
-        if (!estado.historico) estado.historico = [];
-        estado.historico.unshift({ doca: docaAtiva, motorista: "", status: "AGUARDANDO MOTORISTA", placa: "", ts: Date.now() });
-        renderHistorico();
-        marcarPendente();
+      document.querySelectorAll(".ctrl-layout-btn").forEach(btn => {
+        if (Number(btn.dataset.n) === layoutAtual) btn.classList.add("ativo");
+        btn.addEventListener("click", () => aplicarLayout(Number(btn.dataset.n)));
       });
     }
 
@@ -315,20 +303,8 @@
       });
 
       document.getElementById("btn-publicar").addEventListener("click", () => {
-        const d      = docaAtual();
-        const status = (d.status || "").toUpperCase();
-        // Auto-adicionar ao histórico ao liberar/finalizar
-        if (status.includes("LIBERADO") || status.includes("FINALIZADO")) {
-          if (!estado.historico) estado.historico = [];
-          estado.historico.unshift({
-            doca:      docaAtiva,
-            motorista: d.motorista || "",
-            placa:     d.placa || "",
-            status:    d.status || "",
-            ts:        Date.now(),
-          });
-          if (estado.historico.length > 20) estado.historico.length = 20;
-        }
+        // _publishTs garante que a TV sempre detecta mudança e aciona fullscreen + som
+        docaAtual()._publishTs = Date.now();
         salvar(estado);
         sinalizarPublicado();
       });

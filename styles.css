@@ -36,20 +36,9 @@
   --accent:          #3EF2B3;   /* verde DPA — sucesso / link / ativo */
 
   /* ── STATUS PALETTE ──────────────────────────────────────────── */
-  /* Baseado no Astro UX Space Design System:
-     cada status tem cor saturada para visibilidade periférica em TV */
-  --s-aguardando:    #F5B731;   /* Amarelo âmbar — atenção, aguardando */
-  --s-carregando:    #4BA9F2;   /* Azul céu    — operação em andamento */
-  --s-conferencia:   #F07B3B;   /* Laranja      — verificação necessária */
-  --s-liberado:      #3EF2B3;   /* Verde        — operação concluída / livre */
-  --s-finalizado:    #606060;   /* Cinza        — inativo / arquivado */
-
-  /* Versões de fundo (status com 8% opacidade — tint sutil no card) */
-  --s-aguardando-bg:    rgba(245, 183, 49,  0.07);
-  --s-carregando-bg:    rgba(75,  169, 242, 0.07);
-  --s-conferencia-bg:   rgba(240, 123, 59,  0.07);
-  --s-liberado-bg:      rgba(62,  242, 179, 0.07);
-  --s-finalizado-bg:    transparent;
+  --s-aguardando:  #FF3D3D;   /* Vermelho — aguardando motorista */
+  --s-carregando:  #F5B731;   /* Amarelo  — em carregamento */
+  --s-finalizado:  #3EF2B3;   /* Verde    — carregamento finalizado */
 
   /* Fontes */
   --font-main: "Montserrat", system-ui, sans-serif;
@@ -78,7 +67,7 @@ html, body {
 
 body {
   display: grid;
-  grid-template-rows: 5.5vh 1fr 7.5vh;
+  grid-template-rows: 5.5vh 1fr;
   height: 100vh;
 }
 
@@ -103,9 +92,6 @@ body {
   font-weight: 800;
   letter-spacing: 0.42em;
   color: var(--text-tertiary);
-  /* Pequeno traço colorido à esquerda — âncora visual institucional */
-  border-left: 2px solid var(--accent);
-  padding-left: 0.9vmin;
 }
 
 /* Indicador de página: dots maiores e mais claros quando ativos */
@@ -136,44 +122,6 @@ body {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
   color: var(--text-primary);
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   TV HEADER — área central com dots + botões de layout
-   ════════════════════════════════════════════════════════════════════ */
-.tv-header-mid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4vmin;
-}
-
-.tv-layout-btns {
-  display: flex;
-  gap: 0.5vmin;
-}
-
-.tv-layout-btn {
-  font-family: var(--font-main);
-  font-size: clamp(7px, 1vmin, 12px);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-tertiary);
-  background: none;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  padding: 0.15vmin 0.5vmin;
-  cursor: pointer;
-  min-width: clamp(18px, 2.2vmin, 28px);
-  transition: color var(--transition-fast), border-color var(--transition-fast);
-  opacity: 0.5;
-}
-
-.tv-layout-btn:hover,
-.tv-layout-btn.ativo {
-  color: var(--accent);
-  border-color: var(--accent);
-  opacity: 1;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -238,28 +186,18 @@ body {
    onde fica a borda colorida — reforça o vetor visual de entrada do olho. */
 .dock-card[data-status="aguardando"] {
   --card-accent:     var(--s-aguardando);
-  --card-accent-rgb: 245, 183, 49;
-  background: linear-gradient(135deg, rgba(245, 183, 49,  0.08) 0%, var(--surface-card) 55%);
+  --card-accent-rgb: 255, 61, 61;
+  background: linear-gradient(135deg, rgba(255, 61,  61,  0.08) 0%, var(--surface-card) 55%);
 }
 .dock-card[data-status="carregando"] {
   --card-accent:     var(--s-carregando);
-  --card-accent-rgb: 75, 169, 242;
-  background: linear-gradient(135deg, rgba(75,  169, 242, 0.08) 0%, var(--surface-card) 55%);
-}
-.dock-card[data-status="conferencia"] {
-  --card-accent:     var(--s-conferencia);
-  --card-accent-rgb: 240, 123, 59;
-  background: linear-gradient(135deg, rgba(240, 123, 59,  0.08) 0%, var(--surface-card) 55%);
-}
-.dock-card[data-status="liberado"] {
-  --card-accent:     var(--s-liberado);
-  --card-accent-rgb: 62, 242, 179;
-  background: linear-gradient(135deg, rgba(62,  242, 179, 0.08) 0%, var(--surface-card) 55%);
+  --card-accent-rgb: 245, 183, 49;
+  background: linear-gradient(135deg, rgba(245, 183, 49,  0.08) 0%, var(--surface-card) 55%);
 }
 .dock-card[data-status="finalizado"] {
   --card-accent:     var(--s-finalizado);
-  --card-accent-rgb: 96, 96, 96;
-  opacity: 0.45;
+  --card-accent-rgb: 62, 242, 179;
+  background: linear-gradient(135deg, rgba(62,  242, 179, 0.08) 0%, var(--surface-card) 55%);
 }
 
 /* Animação de atualização de card — "morph pulse"
@@ -452,62 +390,6 @@ body {
   opacity: 0.45;
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   RODAPÉ — HISTÓRICO
-   Zona de atividade recente: padrão de aeroportos e hospitais que
-   mostram o fluxo de chamadas concluídas como confirmação operacional.
-   Fundo levemente elevado (surface-raised) separa do grid visual.
-   ════════════════════════════════════════════════════════════════════ */
-.history-zone {
-  background: var(--surface-raised);
-  border-top: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  gap: 2vmin;
-  padding: 0 2.4vmin;
-  overflow: hidden;
-}
-
-.history-label {
-  font-size: clamp(7px, 0.85vmin, 11px);
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  flex-shrink: 0;
-  /* Traço separador visual */
-  border-right: 1px solid var(--border-subtle);
-  padding-right: 2vmin;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15vmin;
-  overflow: hidden;
-  flex: 1;
-  justify-content: center;
-}
-
-.history-item {
-  font-size: clamp(11px, 1.6vmin, 18px);
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.4;
-}
-
-.history-vazio {
-  color: var(--text-tertiary);
-  font-style: italic;
-  letter-spacing: 0.15em;
-}
-
-.hi-time   { color: var(--text-tertiary); }
-.hi-dock   { color: var(--text-primary); font-weight: 700; }
-.hi-status { color: var(--accent); font-weight: 600; }
 
 /* ════════════════════════════════════════════════════════════════════
    GLOW OVERLAY — feedback de atualização em tempo real

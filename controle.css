@@ -310,6 +310,35 @@ html.ctrl-page body {
 }
 .hist-rm:hover { color: #FF6060; border-color: #FF6060; }
 
+/* ════════ LAYOUT BUTTONS ════════ */
+.ctrl-layout-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ctrl-layout-btn {
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #555555;
+  background: none;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  min-width: 48px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.ctrl-layout-btn:hover { color: #AAAAAA; border-color: #333333; }
+.ctrl-layout-btn.ativo {
+  color: #3EF2B3;
+  border-color: #3EF2B3;
+  background: rgba(62, 242, 179, 0.06);
+}
+
 /* ════════ BOTÕES ════════ */
 .btn {
   font-family: inherit;

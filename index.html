@@ -141,39 +141,27 @@
     );
 
     // ── ANIMAR DOCAS ──
-    // Toda publicação aciona fullscreen + som (sem restrição por sessão)
-    function animarDocas(ids) {
-      if (!ids.length) return;
+    let _fsTimer = null;
 
-      // Pulso nos cards que não são o principal
-      ids.slice(1).forEach(otherId => {
-        const other = document.querySelector(`.dock-card[data-id="${otherId}"]`);
-        if (!other) return;
-        other.classList.remove("expandir");
-        void other.offsetWidth;
-        other.classList.add("expandir");
-        other.addEventListener("animationend", () => other.classList.remove("expandir"), { once: true });
-      });
+    function animarDocas(idAlvo) {
+      // Cancela qualquer fullscreen anterior imediatamente
+      clearTimeout(_fsTimer);
+      document.querySelectorAll(".dock-card.fullscreen").forEach(c =>
+        c.classList.remove("fullscreen", "saindo")
+      );
 
-      // Fullscreen no primeiro card publicado
-      const id   = ids[0];
-      const card = document.querySelector(`.dock-card[data-id="${id}"]`);
+      const card = document.querySelector(`.dock-card[data-id="${idAlvo}"]`);
       if (!card) return;
 
-      // Se já está em fullscreen: reinicia o timer de 25s
-      if (card.classList.contains("fullscreen")) {
-        card.classList.remove("saindo");
-        clearTimeout(card._fsTimer);
-      } else {
-        card.classList.add("fullscreen");
-      }
+      void card.offsetWidth; // força reflow para reiniciar animação CSS
+      card.classList.add("fullscreen");
 
-      card._fsTimer = setTimeout(() => {
+      _fsTimer = setTimeout(() => {
         card.classList.add("saindo");
         card.addEventListener("animationend", () => {
           card.classList.remove("fullscreen", "saindo");
         }, { once: true });
-      }, 25000);
+      }, 5000);
     }
 
     // ── RENDER GRID ──
@@ -224,6 +212,8 @@
     // ── ROTAÇÃO AUTOMÁTICA (6s por página) ──
     function iniciarRotacao() {
       setInterval(() => {
+        // Não rotaciona enquanto um card está em fullscreen
+        if (document.querySelector(".dock-card.fullscreen")) return;
         _paginaAtual = (_paginaAtual + 1) % TV_PAGINAS.length;
         if (_estadoAtual) render(_estadoAtual);
       }, 6000);
@@ -265,13 +255,19 @@
             )
           : [];
 
+        // Se há doca alterada: vai para a página dela ANTES de renderizar
+        // Isso garante que o card existe no DOM quando animarDocas rodar
+        if (docasAlteradas.length > 0) {
+          const idAlvo    = docasAlteradas[0];
+          const paginaAlvo = TV_PAGINAS.findIndex(p => p.includes(idAlvo));
+          if (paginaAlvo >= 0) _paginaAtual = paginaAlvo;
+        }
+
         render(novoEstado);
 
-        const visiveis   = TV_PAGINAS[_paginaAtual];
-        const paraAnimar = docasAlteradas.filter(id => visiveis.includes(id));
-        if (paraAnimar.length > 0) {
+        if (docasAlteradas.length > 0) {
           tocarPing();
-          animarDocas(paraAnimar);
+          animarDocas(docasAlteradas[0]);
         }
 
         if (!_primeiroUpdate) ativarGlow();

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050507" />
+  <title>Painel de Motoristas — TV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+
+  <!-- ── OVERLAY DE LOGIN ── -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <button class="auth-close" id="auth-close" type="button" aria-label="Fechar">×</button>
+      <h1>ACESSO</h1>
+      <p class="auth-desc">Entre como administrador para configurar o painel</p>
+      <div class="auth-campos">
+        <input type="text" id="auth-usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" />
+        <input type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password" />
+      </div>
+      <p class="auth-erro" id="auth-erro"></p>
+      <p class="auth-bloqueio" id="auth-bloqueio" style="display:none;"></p>
+      <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
+      <div class="credenciais">
+        <strong>Usuário:</strong> dpa &nbsp;|&nbsp; <strong>Senha:</strong> 1234
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TV HEADER ── -->
+  <header class="tv-header">
+    <span class="tv-empresa">DPA</span>
+    <div class="tv-actions">
+      <div class="tv-contador" id="tv-contador" title="Docas livres / ocupadas">
+        <span>Livres: <span class="c-destaque" id="cont-livres">0</span></span>
+        <span style="color:#333344;">|</span>
+        <span>Ocupadas: <span class="c-destaque" id="cont-ocupadas">0</span></span>
+      </div>
+      <div class="tv-indicador" id="tv-indicador" aria-hidden="true">
+        <span class="pag-dot ativo"></span>
+        <span class="pag-dot"></span>
+        <span class="pag-dot"></span>
+      </div>
+      <time id="relogio-tv" class="tv-relogio" aria-label="Horário atual"></time>
+    </div>
+  </header>
+
+  <!-- ── GRID DE DOCAS ── -->
+  <main class="dock-grid" id="dock-grid" aria-label="Status das docas"></main>
+
+  <!-- ── HISTÓRICO ── -->
+  <footer class="history-zone">
+    <span class="history-label">HISTÓRICO</span>
+    <div class="history-list" id="campo-historico" aria-live="polite" aria-label="Histórico de atendimentos"></div>
+  </footer>
+
+  <!-- ── GLOW DE ATUALIZAÇÃO ── -->
+  <div class="glow-overlay" id="glow-overlay" aria-hidden="true"></div>
+
+  <!-- ── DESTAQUE TELA CHEIA (publicar) ── -->
+  <div id="modo-destaque" class="modo-destaque" aria-hidden="true"></div>
+
+  <!-- ── BOTÃO DISCRETO DE ACESSO ADMIN ── -->
+  <button class="btn-lock" id="btn-lock" type="button" aria-label="Acesso administrador" title="Administrador">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.log('Erro ao registrar SW:', err);
+      });
+    }
+  </script>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════════════════
+    //  PAINEL TV — index.html (REDESIGN v4)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    const TV_PAGINAS = [
+      ["1","2","3","4"],
+      ["5","6","7","8"],
+      ["9","10","11","12"],
+    ];
+    let _paginaAtual = 0;
+    let _estadoAtual = null;
+
+    // ── CLASSIFICAR STATUS ──
+    function classificarStatus(s) {
+      const u = (s || "").toUpperCase();
+      if (u.includes("LIBERADO"))                                       return "liberado";
+      if (u.includes("CARREGAMENTO FINALIZADO"))                        return "carregamento-finalizado";
+      if (u.includes("DESCARREGAMENTO FINALIZADO"))                     return "descarga-finalizada";
+      if (u.includes("AGUARDANDO"))                                     return "aguardando";
+      if (u.includes("CONFERÊNCIA") || u.includes("CONFERENCIA"))      return "conferencia";
+      if (u.includes("CARREGAMENTO") || u.includes("DESCARREGAMENTO")) return "carregando";
+      return "aguardando";
+    }
+
+    // ── FORMATAR HORA ──
+    function formatarHora(ts) {
+      if (!ts) return "";
+      return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    // ── SOM (Web Audio API) ──
+    let _audioCtx = null;
+    function tocarPing() {
+      try {
+        if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (_audioCtx.state === "suspended") _audioCtx.resume();
+        [[523.25, 0], [783.99, 0.14]].forEach(([freq, delay]) => {
+          const osc  = _audioCtx.createOscillator();
+          const gain = _audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(_audioCtx.destination);
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          const t = _audioCtx.currentTime + delay;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.2, t + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.42);
+        });
+      } catch {}
+    }
+    document.addEventListener("click", () => {
+      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }, { once: true });
+
+    // ── ANIMAR DOCAS ──
+    function animarDocas(ids) {
+      ids.forEach(id => {
+        const card = document.querySelector(`.dock-card[data-id="${id}"]`);
+        if (!card) return;
+        card.classList.remove("expandir");
+        void card.offsetWidth;
+        card.classList.add("expandir");
+        card.addEventListener("animationend", () => card.classList.remove("expandir"), { once: true });
+      });
+    }
+
+    // ── DESTAQUE TELA CHEIA (5s + som) ──
+    let _destaqueTimer = null;
+    let _destaqueAtivo = false;
+
+    function destacarDoca(id) {
+      const overlay = document.getElementById("modo-destaque");
+      if (!overlay) return;
+
+      // Finaliza destaque anterior se houver
+      if (_destaqueAtivo) {
+        clearTimeout(_destaqueTimer);
+        overlay.classList.remove("visivel");
+        overlay.innerHTML = "";
+        _destaqueAtivo = false;
+      }
+
+      // Se a doca não estiver na página visível, navega para ela
+      const pagina = TV_PAGINAS.findIndex(p => p.includes(id));
+      if (pagina !== -1 && pagina !== _paginaAtual) {
+        _paginaAtual = pagina;
+        document.querySelectorAll(".pag-dot").forEach((dot, i) => {
+          dot.classList.toggle("ativo", i === _paginaAtual);
+        });
+      }
+
+      const card = document.querySelector(`.dock-card[data-id="${id}"]`);
+      if (!card) return;
+
+      // Som imediato
+      tocarPing();
+
+      // Extrai dados do estado para montar o destaque com estrutura correta
+      const d = ((_estadoAtual.docas || {})[id]) || {};
+      const vazio = !(d.motorista || "").trim();
+      const statusCls = classificarStatus(d.status);
+      const statusTxt = d.status || "AGUARDANDO MOTORISTA";
+      const sufixo = d.paletizada ? "PALETIZADA" : (d.tipo ? d.tipo : "");
+
+      // Cor do status (usa o mapa STATUS_CORES do firebase-config.js)
+      let statusCor = "#FFFFFF";
+      try {
+        const uc = (d.status || "").toUpperCase();
+        statusCor = STATUS_CORES[uc] || "#FFFFFF";
+      } catch {}
+
+      // Monta o destaque: TOPO → MEIO → RODAPÉ
+      let conteudoInterno = "";
+      if (vazio) {
+        conteudoInterno = `
+          <div class="dc-topo">
+            <span class="dc-numero">DOCA ${id}</span>
+            <div class="dc-status" style="color: ${statusCor};">
+              <span class="dc-dot" aria-hidden="true" style="background: ${statusCor}; box-shadow: 0 0 18px ${statusCor}44;"></span>
+              <span>${statusTxt}</span>
+            </div>
+          </div>
+          <div class="dc-linha"></div>
+          <div class="dc-meio">
+            <p class="dc-livre">DOCA LIVRE</p>
+          </div>
+          <div class="dc-rodape"></div>
+        `;
+      } else {
+        conteudoInterno = `
+          <div class="dc-topo">
+            <span class="dc-numero">DOCA ${id}</span>
+            <div class="dc-status" style="color: ${statusCor};">
+              <span class="dc-dot" aria-hidden="true" style="background: ${statusCor}; box-shadow: 0 0 18px ${statusCor}44;"></span>
+              <span>${statusTxt}</span>
+            </div>
+          </div>
+          <div class="dc-linha"></div>
+          <div class="dc-meio">
+            <p class="dc-motorista">${d.motorista}</p>
+          </div>
+          <div class="dc-rodape">
+            <p class="dc-placa">${formatarPlaca(d.placa || "")}</p>
+            ${sufixo ? `<p class="dc-info">${sufixo}</p>` : ""}
+          </div>
+        `;
+      }
+
+      overlay.innerHTML = `<article class="dock-card" data-id="${id}" data-status="${statusCls}">${conteudoInterno}</article>`;
+      const destaque = overlay.querySelector(".dock-card");
+      if (destaque) {
+        destaque.classList.add("destaque-tela-cheia");
+        destaque.classList.remove("expandir");
+        destaque.dataset.id = id;
+      }
+
+      overlay.classList.add("visivel");
+      _destaqueAtivo = true;
+
+      // Som de reforço após 2,5s
+      _destaqueTimer = setTimeout(() => {
+        tocarPing();
+      }, CONFIG.DESTAQUE_SOM_REFORCO_MS);
+
+      // Fecha após 5s
+      _destaqueTimer = setTimeout(() => {
+        overlay.classList.remove("visivel");
+        overlay.innerHTML = "";
+        _destaqueAtivo = false;
+      }, CONFIG.DESTAQUE_DURACAO_MS);
+    }
+
+    // ── CONTADOR DE DOCAS ──
+    function atualizarContador(estado) {
+      let livres = 0, ocupadas = 0;
+      DOCA_IDS.forEach(id => {
+        const d = (estado.docas || {})[id] || {};
+        if ((d.motorista || "").trim()) ocupadas++; else livres++;
+      });
+      const elL = document.getElementById("cont-livres");
+      const elO = document.getElementById("cont-ocupadas");
+      if (elL) elL.textContent = livres;
+      if (elO) elO.textContent = ocupadas;
+    }
+
+    // ── RENDER GRID ──
+    function render(estado) {
+      _estadoAtual = estado;
+      const docasDaPagina = TV_PAGINAS[_paginaAtual];
+      const grid = document.getElementById("dock-grid");
+      grid.innerHTML = docasDaPagina.map(id => {
+        const d         = ((estado.docas || {})[id]) || {};
+        const vazio     = !(d.motorista || "").trim();
+        const statusCls = classificarStatus(d.status);
+        const statusTxt = d.status || "AGUARDANDO MOTORISTA";
+        const sufixo    = d.paletizada ? "PALETIZADA" : (d.tipo ? d.tipo : "");
+        return `<article class="dock-card" data-id="${id}" data-status="${statusCls}"
+                         aria-label="Doca ${id}: ${statusTxt}">
+          <div class="dc-header">
+            <span class="dc-numero">DOCA ${id}</span>
+            <div class="dc-status">
+              <span class="dc-dot" aria-hidden="true"></span>
+              <span>${statusTxt}</span>
+            </div>
+          </div>
+          ${vazio
+            ? `<p class="dc-livre">DOCA LIVRE</p>`
+            : `<p class="dc-motorista">${d.motorista}</p>
+               <p class="dc-placa">${formatarPlaca(d.placa || "")}</p>
+               <p class="dc-info">${(d.tipo || "")}</p>`
+          }
+        </article>`;
+      }).join("");
+
+      document.querySelectorAll(".pag-dot").forEach((dot, i) => {
+        dot.classList.toggle("ativo", i === _paginaAtual);
+      });
+
+      document.getElementById("campo-historico").innerHTML =
+        (estado.historico || []).slice(0, 6).map(h =>
+          `<div class="history-item">
+            <span class="hi-time">${formatarHora(h.ts)}</span>
+            &nbsp;·&nbsp;<span class="hi-dock">D${String(h.doca).padStart(2,"0")}</span>
+            &nbsp;·&nbsp;<span class="hi-name">${h.motorista || ""}</span>
+            &nbsp;·&nbsp;<span class="hi-plate">${h.placa || ""}</span>
+            &nbsp;·&nbsp;<span class="hi-status">${h.status || ""}</span>
+          </div>`
+        ).join("");
+
+      atualizarContador(estado);
+    }
+
+    // ── ROTAÇÃO AUTOMÁTICA ──
+    function iniciarRotacao() {
+      setInterval(() => {
+        _paginaAtual = (_paginaAtual + 1) % TV_PAGINAS.length;
+        if (_estadoAtual) render(_estadoAtual);
+      }, CONFIG.ROTACAO_PAGINA_MS);
+    }
+
+    // ── GLOW ──
+    function ativarGlow() {
+      const el = document.getElementById("glow-overlay");
+      if (!el) return;
+      el.classList.remove("ativo");
+      void el.offsetWidth;
+      el.classList.add("ativo");
+      setTimeout(() => el.classList.remove("ativo"), 2800);
+    }
+
+    // ── RELÓGIO ──
+    function iniciarRelogio() {
+      const el   = document.getElementById("relogio-tv");
+      const tick = () => {
+        el.textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // ── PAINEL ──
+    const isKiosk = new URLSearchParams(location.search).has("kiosk");
+    let _primeiroUpdate = _firebaseAtivo;
+
+    function iniciarPainel() {
+      _estadoAtual = carregar();
+      render(_estadoAtual);
+      iniciarRotacao();
+      inscrever((novoEstado) => {
+        const anterior = _estadoAtual;
+        const docasAlteradas = anterior
+          ? DOCA_IDS.filter(id =>
+              JSON.stringify((anterior.docas || {})[id]) !== JSON.stringify((novoEstado.docas || {})[id])
+            )
+          : [];
+
+        // Se há docas alteradas que não estão na página visível, navega para a página da primeira
+        const primeiraAlterada = docasAlteradas[0];
+        if (primeiraAlterada) {
+          const paginaDesejada = TV_PAGINAS.findIndex(p => p.includes(primeiraAlterada));
+          if (paginaDesejada !== -1 && paginaDesejada !== _paginaAtual) {
+            _paginaAtual = paginaDesejada;
+            document.querySelectorAll(".pag-dot").forEach((dot, i) => {
+              dot.classList.toggle("ativo", i === _paginaAtual);
+            });
+          }
+        }
+
+        render(novoEstado);
+
+        const visiveis   = TV_PAGINAS[_paginaAtual];
+        const paraAnimar = docasAlteradas.filter(id => visiveis.includes(id));
+        if (paraAnimar.length > 0) {
+          tocarPing();
+          animarDocas(paraAnimar);
+          destacarDoca(paraAnimar[0]);
+        }
+
+        if (!_primeiroUpdate) ativarGlow();
+        _primeiroUpdate = false;
+      });
+    }
+
+    // ── AUTH ──
+    function fecharLogin() {
+      document.getElementById("auth-overlay").classList.remove("visivel");
+      document.getElementById("auth-usuario").value    = "";
+      document.getElementById("auth-senha").value      = "";
+      document.getElementById("auth-erro").textContent = "";
+      document.getElementById("auth-bloqueio").textContent = "";
+      document.getElementById("auth-bloqueio").style.display = "none";
+    }
+
+    async function tentarLogin() {
+      if (estaBloqueado()) {
+        const err = document.getElementById("auth-erro");
+        const mins = tempoRestanteBloqueio();
+        err.textContent = `Muitas tentativas. Tente novamente em ${mins} min.`;
+        return;
+      }
+      const usuario = document.getElementById("auth-usuario").value;
+      const senha   = document.getElementById("auth-senha").value;
+      const err     = document.getElementById("auth-erro");
+      const tipo    = await verificarLogin(usuario, senha);
+      if (tipo === "admin") {
+        salvarSessao("admin");
+        location.href = "controle.html";
+      } else if (tipo === "bloqueado") {
+        const mins = tempoRestanteBloqueio();
+        document.getElementById("auth-bloqueio").textContent = `Conta bloqueada por ${mins} min devido a muitas tentativas falhas.`;
+        document.getElementById("auth-bloqueio").style.display = "block";
+        err.textContent = "";
+      } else {
+        err.textContent = "Usuário ou senha incorretos";
+        document.getElementById("auth-senha").value = "";
+        document.getElementById("auth-senha").focus();
+      }
+    }
+
+    function abrirLogin() {
+      document.getElementById("auth-overlay").classList.add("visivel");
+      document.getElementById("auth-btn").onclick       = tentarLogin;
+      document.getElementById("auth-usuario").onkeydown = (e) => { if (e.key === "Enter") document.getElementById("auth-senha").focus(); };
+      document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLogin(); };
+      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
+    }
+
+    // ── INIT ──
+    (function init() {
+      iniciarPainel();
+      iniciarRelogio();
+
+      if (!isKiosk) {
+        document.getElementById("btn-lock").addEventListener("click", abrirLogin);
+        document.getElementById("auth-close").addEventListener("click", fecharLogin);
+        document.getElementById("auth-overlay").addEventListener("click", (e) => {
+          if (e.target === document.getElementById("auth-overlay")) fecharLogin();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") fecharLogin();
+        });
+      }
+
+      // Atalho: F11 tela cheia
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "F11") {
+          e.preventDefault();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(()=>{});
+          } else {
+            document.exitFullscreen().catch(()=>{});
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

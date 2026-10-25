@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="ctrl-page">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle · Painel de Motoristas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="controle.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+
+  <!-- ── OVERLAY DE LOGIN ── -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <h1>CONTROLE</h1>
+      <p class="auth-desc">Acesso restrito a administradores</p>
+      <div class="auth-campos">
+        <input type="text" id="auth-usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" />
+        <input type="password" id="auth-senha" placeholder="Senha" autocomplete="current-password" />
+      </div>
+      <p class="auth-erro" id="auth-erro"></p>
+      <p class="auth-bloqueio" id="auth-bloqueio" style="display:none;"></p>
+      <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
+      <a href="index.html" class="auth-voltar">← Voltar ao painel</a>
+      <div class="credenciais">
+        <strong>Usuário:</strong> dpa &nbsp;|&nbsp; <strong>Senha:</strong> 1234
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAINEL DE CONTROLE ── -->
+  <main class="ctrl-wrap" id="ctrl-wrap">
+    <header class="ctrl-header">
+      <div>
+        <h1>CONTROLE
+          <span class="firebase-dot" id="firebase-dot" title="Sync desconectado"></span>
+        </h1>
+        <p>Selecione a doca, edite os campos e clique em Publicar</p>
+      </div>
+      <div class="ctrl-header-acoes">
+        <a href="index.html" class="ctrl-link" target="_blank">↗ Ver painel TV</a>
+        <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">⏻</button>
+      </div>
+    </header>
+
+    <!-- TABS DE DOCA -->
+    <div class="ctrl-tabs" role="tablist" aria-label="Selecionar doca">
+      <button class="ctrl-tab active" role="tab" data-doca="1"  aria-selected="true">D1</button>
+      <button class="ctrl-tab"        role="tab" data-doca="2"  aria-selected="false">D2</button>
+      <button class="ctrl-tab"        role="tab" data-doca="3"  aria-selected="false">D3</button>
+      <button class="ctrl-tab"        role="tab" data-doca="4"  aria-selected="false">D4</button>
+      <button class="ctrl-tab"        role="tab" data-doca="5"  aria-selected="false">D5</button>
+      <button class="ctrl-tab"        role="tab" data-doca="6"  aria-selected="false">D6</button>
+      <button class="ctrl-tab"        role="tab" data-doca="7"  aria-selected="false">D7</button>
+      <button class="ctrl-tab"        role="tab" data-doca="8"  aria-selected="false">D8</button>
+      <button class="ctrl-tab"        role="tab" data-doca="9"  aria-selected="false">D9</button>
+      <button class="ctrl-tab"        role="tab" data-doca="10" aria-selected="false">D10</button>
+      <button class="ctrl-tab"        role="tab" data-doca="11" aria-selected="false">D11</button>
+      <button class="ctrl-tab"        role="tab" data-doca="12" aria-selected="false">D12</button>
+    </div>
+
+    <!-- MOTORISTA ATUAL -->
+    <section class="ctrl-card">
+      <h2 id="titulo-doca">Doca 1 — Motorista atual</h2>
+      <div class="ctrl-grid">
+
+        <label class="ctrl-field">
+          <span>Status</span>
+          <select id="in-status">
+            <option>AGUARDANDO MOTORISTA</option>
+            <option>CARREGAMENTO</option>
+            <option>CARREGAMENTO FINALIZADO</option>
+            <option>DESCARREGAMENTO</option>
+            <option>DESCARREGAMENTO FINALIZADO</option>
+            <option>EM CONFERÊNCIA</option>
+            <option>LIBERADO</option>
+          </select>
+        </label>
+
+        <label class="ctrl-field ctrl-field-wide">
+          <span>Nome do motorista</span>
+          <input type="text" id="in-motorista" placeholder="Ex: JOÃO SILVA" autocapitalize="characters" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Placa</span>
+          <input type="text" id="in-placa" placeholder="Ex: ABC-1234" autocapitalize="characters" maxlength="8" />
+          <small style="font-size:0.7rem;color:#6a6a7e;margin-top:6px;display:block;">Aceita ABC-1234 ou ABC1D23 (Mercosul)</small>
+        </label>
+
+        <label class="ctrl-field">
+          <span>Veículo (nome / código)</span>
+          <input type="text" id="in-veiculo" placeholder="Ex: TRUCK 01" autocapitalize="characters" />
+        </label>
+
+        <label class="ctrl-field">
+          <span>Tipo</span>
+          <select id="in-tipo">
+            <option>CARRETA</option>
+            <option>TRUCK</option>
+            <option>VAN</option>
+            <option>BITRUCK</option>
+            <option>RODOTREM</option>
+            <option>VUC</option>
+          </select>
+        </label>
+
+        <label class="ctrl-field ctrl-switch">
+          <span>Paletizada?</span>
+          <div class="switch">
+            <input type="checkbox" id="in-paletizada" />
+            <span class="slider"></span>
+          </div>
+        </label>
+
+      </div>
+    </section>
+
+    <!-- HISTÓRICO RECENTE -->
+    <section class="ctrl-card">
+      <div class="ctrl-card-header">
+        <h2>Histórico recente</h2>
+        <button class="btn btn-sm" id="add-historico" type="button">+ Adicionar</button>
+      </div>
+      <div id="hist-lista" class="hist-lista"></div>
+    </section>
+
+    <!-- AÇÕES -->
+    <div class="ctrl-acoes">
+      <div class="btn-group-esq">
+        <button class="btn btn-ghost" id="resetar" type="button">Resetar dados</button>
+        <button class="btn btn-exportar" id="btn-exportar" type="button">⬇ Exportar JSON</button>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <button class="btn btn-importar" type="button" style="margin:0;">⬆ Importar JSON</button>
+          <input type="file" id="input-importar" accept=".json" style="display:none;" />
+        </label>
+      </div>
+      <div class="ctrl-publicar-area">
+        <span class="ctrl-status" id="ctrl-status">Pronto</span>
+        <button class="btn btn-publicar" id="btn-publicar" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+          </svg>
+          Publicar na tela
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.log('Erro ao registrar SW:', err);
+      });
+    }
+  </script>
+
+  <script>
+    // ════════════════════════════════════════════════════════════════════════════════
+    //  CONTROLE — controle.html (REDESIGN v4)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    let estado    = carregar();
+    let docaAtiva = "1";
+    let _timer         = null;
+    let _temAlteracoes = false;
+
+    const CAMPOS = {
+      "in-status":    "status",
+      "in-motorista": "motorista",
+      "in-placa":     "placa",
+      "in-veiculo":   "veiculo",
+      "in-tipo":      "tipo",
+    };
+
+    // ════════════════════════════════════════════════════════════════════════════════
+    // AUTH ADMIN
+    // ════════════════════════════════════════════════════════════════════════════════
+    async function tentarLoginAdmin() {
+      if (estaBloqueado()) {
+        const err = document.getElementById("auth-erro");
+        const mins = tempoRestanteBloqueio();
+        err.textContent = `Muitas tentativas. Tente novamente em ${mins} min.`;
+        return;
+      }
+      const usuario = document.getElementById("auth-usuario").value;
+      const senha   = document.getElementById("auth-senha").value;
+      const err     = document.getElementById("auth-erro");
+      const tipo    = await verificarLogin(usuario, senha);
+      if (tipo === "admin") {
+        salvarSessao("admin");
+        document.getElementById("auth-overlay").classList.remove("visivel");
+        iniciarControle();
+      } else if (tipo === "bloqueado") {
+        const mins = tempoRestanteBloqueio();
+        document.getElementById("auth-bloqueio").textContent = `Conta bloqueada por ${mins} min devido a muitas tentativas falhas.`;
+        document.getElementById("auth-bloqueio").style.display = "block";
+        err.textContent = "";
+      } else {
+        err.textContent = "Usuário ou senha incorretos";
+        document.getElementById("auth-senha").value = "";
+        document.getElementById("auth-senha").focus();
+      }
+    }
+
+    (function initAuth() {
+      if (tipoSessao() === "admin" && !sessaoExpirada()) { iniciarControle(); return; }
+      document.getElementById("auth-overlay").classList.add("visivel");
+      document.getElementById("auth-btn").onclick       = tentarLoginAdmin;
+      document.getElementById("auth-usuario").onkeydown = (e) => { if (e.key === "Enter") document.getElementById("auth-senha").focus(); };
+      document.getElementById("auth-senha").onkeydown   = (e) => { if (e.key === "Enter") tentarLoginAdmin(); };
+      setTimeout(() => document.getElementById("auth-usuario").focus(), 100);
+    })();
+
+    function iniciarControle() {
+      // Indicador Firebase
+      if (_firebaseAtivo && firebase?.database) {
+        firebase.database().ref(".info/connected").on("value", (snap) => {
+          const dot = document.getElementById("firebase-dot");
+          if (!dot) return;
+          const on = snap.val() === true;
+          dot.classList.toggle("on", on);
+          dot.title = on ? "Sync ativo" : "Sync desconectado";
+        });
+      }
+
+      vincularTabs();
+      preencher();
+      vincularCampos();
+      vincularHistorico();
+      vincularAcoes();
+
+      inscrever((novo) => { if (!_temAlteracoes) { estado = novo; preencher(); } });
+    }
+
+    // ── Tabs de doca ──
+    function vincularTabs() {
+      document.querySelectorAll(".ctrl-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          docaAtiva = tab.dataset.doca;
+          document.querySelectorAll(".ctrl-tab").forEach(t => {
+            t.classList.toggle("active", t === tab);
+            t.setAttribute("aria-selected", t === tab ? "true" : "false");
+          });
+          document.getElementById("titulo-doca").textContent = `Doca ${docaAtiva} — Motorista atual`;
+          _temAlteracoes = false;
+          const cs = document.getElementById("ctrl-status");
+          cs.textContent = "Pronto"; cs.className = "ctrl-status";
+          preencher();
+        });
+      });
+    }
+
+    function docaAtual() {
+      if (!estado.docas) estado.docas = {};
+      if (!estado.docas[docaAtiva]) estado.docas[docaAtiva] = { ...DOCA_PADRAO };
+      return estado.docas[docaAtiva];
+    }
+
+    function preencher() {
+      const d = docaAtual();
+      Object.entries(CAMPOS).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = d[key] || "";
+      });
+      document.getElementById("in-paletizada").checked = !!d.paletizada;
+      renderHistorico();
+    }
+
+    function vincularCampos() {
+      Object.entries(CAMPOS).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => {
+          let v = el.value;
+          if (key === "placa") v = formatarPlaca(v);
+          if (["motorista", "veiculo", "placa"].includes(key)) {
+            v = v.toUpperCase(); el.value = v;
+          }
+          // Validação visual de placa
+          const placaEl = document.getElementById("in-placa");
+          if (key === "placa" && v) {
+            const valida = validarPlaca(v);
+            placaEl.classList.toggle("invalido", !valida);
+          }
+          docaAtual()[key] = v;
+          docaAtual().atualizadoEm = Date.now();
+          marcarPendente();
+        });
+      });
+      document.getElementById("in-paletizada").addEventListener("change", (e) => {
+        docaAtual().paletizada = e.target.checked;
+        docaAtual().atualizadoEm = Date.now();
+        marcarPendente();
+      });
+    }
+
+    // ── Histórico ──
+    function renderHistorico() {
+      const cont = document.getElementById("hist-lista");
+      cont.innerHTML = (estado.historico || []).slice(0, 10).map((h, i) => `
+        <div class="hist-item">
+          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca || ""}"      placeholder="D" maxlength="2" />
+          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista || ""}" placeholder="NOME" />
+          <input class="hist-placa"     data-i="${i}" data-k="placa"     value="${formatarPlaca(h.placa || "")}" placeholder="PLACA" maxlength="8" />
+          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status || ""}"    placeholder="STATUS" />
+          <button class="hist-rm" data-i="${i}" type="button" title="Remover">×</button>
+        </div>
+      `).join("");
+
+      cont.querySelectorAll("input").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const i = +inp.dataset.i, k = inp.dataset.k;
+          let v = inp.value;
+          if (k === "placa") v = formatarPlaca(v);
+          if (k === "motorista" || k === "status") { v = v.toUpperCase(); inp.value = v; }
+          if (k === "placa" && v) {
+            inp.classList.toggle("invalido", !validarPlaca(v));
+          }
+          estado.historico[i][k] = v;
+          marcarPendente();
+        });
+      });
+
+      cont.querySelectorAll(".hist-rm").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          estado.historico.splice(+btn.dataset.i, 1);
+          renderHistorico();
+          marcarPendente();
+        });
+      });
+    }
+
+    function vincularHistorico() {
+      document.getElementById("add-historico").addEventListener("click", () => {
+        if (!estado.historico) estado.historico = [];
+        estado.historico.unshift({ doca: docaAtiva, motorista: "", status: "AGUARDANDO MOTORISTA", placa: "", ts: Date.now() });
+        renderHistorico();
+        marcarPendente();
+      });
+    }
+
+    // ── Ações ──
+    function vincularAcoes() {
+      document.getElementById("resetar").addEventListener("click", () => {
+        if (!confirm("Resetar todos os dados? Isso não pode ser desfeito.")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        estado = carregar();
+        salvar(estado);
+        preencher();
+        sinalizarPublicado();
+      });
+
+      document.getElementById("btn-sair").addEventListener("click", () => {
+        if (_temAlteracoes && !confirm("Você tem alterações não publicadas. Tem certeza que deseja sair?")) return;
+        if (!confirm("Sair da sessão admin?")) return;
+        deslogar();
+        location.href = "index.html";
+      });
+
+      // Exportar
+      document.getElementById("btn-exportar").addEventListener("click", () => {
+        exportarJSON();
+      });
+
+      // Importar
+      const inputImportar = document.getElementById("input-importar");
+      inputImportar.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          await importarJSON(file);
+          estado = carregar();
+          preencher();
+          sinalizarPublicado();
+          alert("Dados importados com sucesso!");
+        } catch (err) {
+          alert("Erro ao importar: " + err.message);
+        }
+        inputImportar.value = "";
+      });
+
+      document.getElementById("btn-publicar").addEventListener("click", () => {
+        const d      = docaAtual();
+        const status = (d.status || "").toUpperCase();
+        if (status.includes("LIBERADO") || status.includes("FINALIZADO")) {
+          if (!estado.historico) estado.historico = [];
+          estado.historico.unshift({
+            doca:      docaAtiva,
+            motorista: d.motorista || "",
+            placa:     formatarPlaca(d.placa || ""),
+            status:    d.status || "",
+            ts:        Date.now(),
+          });
+          if (estado.historico.length > 20) estado.historico.length = 20;
+        }
+        d.atualizadoEm = Date.now();
+        salvar(estado);
+        sinalizarPublicado();
+      });
+    }
+
+    function marcarPendente() {
+      _temAlteracoes = true;
+      const el = document.getElementById("ctrl-status");
+      el.textContent = "● Não publicado";
+      el.className   = "ctrl-status pendente";
+    }
+
+    function sinalizarPublicado() {
+      _temAlteracoes = false;
+      const el = document.getElementById("ctrl-status");
+      el.textContent = "Publicando…";
+      el.className   = "ctrl-status salvando";
+      clearTimeout(_timer);
+      _timer = setTimeout(() => {
+        el.textContent = "✓ Publicado";
+        el.className   = "ctrl-status publicado";
+        setTimeout(() => {
+          if (!_temAlteracoes) {
+            el.textContent = "Pronto";
+            el.className   = "ctrl-status";
+          }
+        }, 2500);
+      }, 400);
+    }
+  </script>
+</body>
+</html>

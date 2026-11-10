@@ -7,7 +7,7 @@
   <title>Painel de Motoristas — TV</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
   <meta name="mobile-web-app-capable" content="yes">
@@ -27,9 +27,6 @@
       <p class="auth-erro" id="auth-erro"></p>
       <p class="auth-bloqueio" id="auth-bloqueio" style="display:none;"></p>
       <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
-      <div class="credenciais">
-        <strong>Usuário:</strong> dpa &nbsp;|&nbsp; <strong>Senha:</strong> 1234
-      </div>
     </div>
   </div>
 
@@ -115,6 +112,12 @@
     function formatarHora(ts) {
       if (!ts) return "";
       return new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[char]));
     }
 
     // ── SOM (Web Audio API) ──
@@ -205,10 +208,10 @@
       if (vazio) {
         conteudoInterno = `
           <div class="dc-topo">
-            <span class="dc-numero">DOCA ${id}</span>
+            <span class="dc-numero">DOCA ${escapeHtml(id)}</span>
             <div class="dc-status" style="color: ${statusCor};">
               <span class="dc-dot" aria-hidden="true" style="background: ${statusCor}; box-shadow: 0 0 18px ${statusCor}44;"></span>
-              <span>${statusTxt}</span>
+              <span>${escapeHtml(statusTxt)}</span>
             </div>
           </div>
           <div class="dc-linha"></div>
@@ -220,29 +223,41 @@
       } else {
         conteudoInterno = `
           <div class="dc-topo">
-            <span class="dc-numero">DOCA ${id}</span>
+            <span class="dc-numero">DOCA ${escapeHtml(id)}</span>
             <div class="dc-status" style="color: ${statusCor};">
               <span class="dc-dot" aria-hidden="true" style="background: ${statusCor}; box-shadow: 0 0 18px ${statusCor}44;"></span>
-              <span>${statusTxt}</span>
+              <span>${escapeHtml(statusTxt)}</span>
             </div>
           </div>
           <div class="dc-linha"></div>
           <div class="dc-meio">
-            <p class="dc-motorista">${d.motorista}</p>
+            <p class="dc-motorista">${escapeHtml(d.motorista)}</p>
           </div>
           <div class="dc-rodape">
-            <p class="dc-placa">${formatarPlaca(d.placa || "")}</p>
-            ${sufixo ? `<p class="dc-info">${sufixo}</p>` : ""}
+            <p class="dc-placa">${escapeHtml(formatarPlaca(d.placa || ""))}</p>
+            ${sufixo ? `<p class="dc-info">${escapeHtml(sufixo)}</p>` : ""}
           </div>
         `;
       }
 
-      overlay.innerHTML = `<article class="dock-card" data-id="${id}" data-status="${statusCls}">${conteudoInterno}</article>`;
+      overlay.innerHTML = `<article class="dock-card" data-id="${escapeHtml(id)}" data-status="${escapeHtml(statusCls)}">${conteudoInterno}</article>`;
       const destaque = overlay.querySelector(".dock-card");
       if (destaque) {
         destaque.classList.add("destaque-tela-cheia");
         destaque.classList.remove("expandir");
         destaque.dataset.id = id;
+        const statusRGB = {
+          aguardando: "245,183,49",
+          carregando: "75,169,242",
+          "carregamento-finalizado": "75,169,242",
+          descargando: "75,169,242",
+          "descarga-finalizada": "75,169,242",
+          conferencia: "240,123,59",
+          liberado: "0,255,157",
+          finalizado: "123,135,136"
+        }[statusCls] || "0,255,157";
+        destaque.style.setProperty("--popup-status-color", statusCor);
+        destaque.style.setProperty("--popup-status-rgb", statusRGB);
       }
 
       overlay.classList.add("visivel");
@@ -285,20 +300,20 @@
         const statusCls = classificarStatus(d.status);
         const statusTxt = d.status || "AGUARDANDO MOTORISTA";
         const sufixo    = d.paletizada ? "PALETIZADA" : (d.tipo ? d.tipo : "");
-        return `<article class="dock-card" data-id="${id}" data-status="${statusCls}"
-                         aria-label="Doca ${id}: ${statusTxt}">
+        return `<article class="dock-card" data-id="${escapeHtml(id)}" data-status="${escapeHtml(statusCls)}"
+                         aria-label="Doca ${escapeHtml(id)}: ${escapeHtml(statusTxt)}">
           <div class="dc-header">
-            <span class="dc-numero">DOCA ${id}</span>
+            <span class="dc-numero">DOCA ${escapeHtml(id)}</span>
             <div class="dc-status">
               <span class="dc-dot" aria-hidden="true"></span>
-              <span>${statusTxt}</span>
+              <span>${escapeHtml(statusTxt)}</span>
             </div>
           </div>
           ${vazio
             ? `<p class="dc-livre">DOCA LIVRE</p>`
-            : `<p class="dc-motorista">${d.motorista}</p>
-               <p class="dc-placa">${formatarPlaca(d.placa || "")}</p>
-               <p class="dc-info">${(d.tipo || "")}</p>`
+            : `<p class="dc-motorista">${escapeHtml(d.motorista)}</p>
+               <p class="dc-placa">${escapeHtml(formatarPlaca(d.placa || ""))}</p>
+               <p class="dc-info">${escapeHtml(d.tipo || "")}</p>`
           }
         </article>`;
       }).join("");
@@ -310,11 +325,11 @@
       document.getElementById("campo-historico").innerHTML =
         (estado.historico || []).slice(0, 6).map(h =>
           `<div class="history-item">
-            <span class="hi-time">${formatarHora(h.ts)}</span>
-            &nbsp;·&nbsp;<span class="hi-dock">D${String(h.doca).padStart(2,"0")}</span>
-            &nbsp;·&nbsp;<span class="hi-name">${h.motorista || ""}</span>
-            &nbsp;·&nbsp;<span class="hi-plate">${h.placa || ""}</span>
-            &nbsp;·&nbsp;<span class="hi-status">${h.status || ""}</span>
+            <span class="hi-time">${escapeHtml(formatarHora(h.ts))}</span>
+            &nbsp;·&nbsp;<span class="hi-dock">D${escapeHtml(String(h.doca).padStart(2,"0"))}</span>
+            &nbsp;·&nbsp;<span class="hi-name">${escapeHtml(h.motorista || "")}</span>
+            &nbsp;·&nbsp;<span class="hi-plate">${escapeHtml(h.placa || "")}</span>
+            &nbsp;·&nbsp;<span class="hi-status">${escapeHtml(h.status || "")}</span>
           </div>`
         ).join("");
 

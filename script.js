@@ -85,7 +85,9 @@ function normalizarEstado(raw) {
   });
   return {
     docas,
-    historico: Array.isArray(raw?.historico) ? raw.historico : [],
+    historico: Array.isArray(raw?.historico)
+      ? [...raw.historico].sort((a, b) => (Number(b?.ts) || 0) - (Number(a?.ts) || 0))
+      : [],
     versao: raw?.versao || 4,
     atualizadoEm: raw?.atualizadoEm || Date.now()
   };

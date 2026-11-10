@@ -13,17 +13,21 @@ html.ctrl-page body {
   height: auto !important;
   min-height: 100vh;
   overflow: visible !important;
+  overflow-x: hidden !important;
   text-transform: none !important;
-  background: #08080b;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(0,255,157,0.055), transparent 28rem),
+    radial-gradient(circle at 95% 100%, rgba(62,157,255,0.045), transparent 32rem),
+    #080b0c;
 }
 
 .ctrl-wrap {
-  max-width: min(1100px, 95%);
+  max-width: min(1180px, 94%);
   margin: 0 auto;
   padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px) clamp(80px, 10vw, 120px);
   display: flex;
   flex-direction: column;
-  gap: clamp(16px, 2vw, 28px);
+  gap: clamp(18px, 2vw, 32px);
 }
 
 /* ═══ HEADER ═══ */
@@ -36,19 +40,19 @@ html.ctrl-page body {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(8, 8, 11, 0.9);
+  background: rgba(8, 11, 12, 0.88);
   border-bottom: 1px solid #1a1a24;
   padding: clamp(16px, 3vw, 28px) clamp(16px, 3vw, 32px);
   margin-left: calc(-1 * clamp(16px, 3vw, 32px));
   margin-right: calc(-1 * clamp(16px, 3vw, 32px));
   padding-left: clamp(16px, 3vw, 32px);
   padding-right: clamp(16px, 3vw, 32px);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
 .ctrl-header h1 {
-  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
   font-weight: 900;
   letter-spacing: 0.3em;
   color: #f0f0f0;
@@ -91,15 +95,16 @@ html.ctrl-page body {
 /* ═══ LINKS / BOTÕES HEADER ═══ */
 .ctrl-link {
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 0.08em;
   color: #00ff9d;
   text-decoration: none;
   text-transform: uppercase;
   padding: 10px 16px;
   border: 1px solid #232333;
-  border-radius: 10px;
+  border-radius: 8px;
+  min-height: 44px;
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
@@ -111,15 +116,18 @@ html.ctrl-page body {
 }
 
 .ctrl-link-warn {
-  width: 44px; height: 44px;
-  padding: 0;
+  width: auto;
+  min-width: 64px;
+  height: 44px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #6a6a7e;
-  font-size: 1.2rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
   border: 1px solid #232333;
-  border-radius: 50%;
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
@@ -128,7 +136,8 @@ html.ctrl-page body {
 
 /* ═══ TABS DE DOCA ═══ */
 .ctrl-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(44px, 1fr));
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 4px;
@@ -143,7 +152,7 @@ html.ctrl-page body {
   color: #6a6a7e;
   background: #0a0a0f;
   border: 1px solid #1a1a24;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 8px 14px;
   cursor: pointer;
   min-height: 40px;
@@ -162,13 +171,36 @@ html.ctrl-page body {
 }
 .ctrl-tab:active { transform: scale(0.95); }
 
+.ctrl-tab:focus-visible,
+.ctrl-link:focus-visible,
+.ctrl-field input:focus-visible,
+.ctrl-field select:focus-visible,
+.btn:focus-visible,
+.switch input:focus-visible + .slider,
+.auth-btn:focus-visible,
+.auth-voltar:focus-visible {
+  outline: 2px solid #00ff9d;
+  outline-offset: 3px;
+}
+
 /* ═══ CARD ═══ */
 .ctrl-card {
-  background: #0c0c10;
-  border: 1px solid #1a1a24;
-  border-radius: var(--radius-xl);
-  padding: 28px;
+  background: linear-gradient(145deg, rgba(17,22,24,0.98), rgba(12,16,18,0.98));
+  border: 1px solid #253033;
+  border-radius: 14px;
+  padding: clamp(22px, 3vw, 34px);
   box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.ctrl-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, #00ff9d, transparent 70%);
+  opacity: 0.75;
 }
 
 .ctrl-card h2 {
@@ -188,15 +220,61 @@ html.ctrl-page body {
 }
 .ctrl-card-header h2 { margin-bottom: 0; }
 
+.hist-filtros {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(200px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin: -4px 0 18px;
+}
+
+.hist-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hist-filtros label > span {
+  color: #71807d;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hist-filtros input,
+.hist-filtros select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #232f32;
+  border-radius: 8px;
+  background: #080b0c;
+  color: #f0f0f0;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.hist-filtros input:focus,
+.hist-filtros select:focus {
+  border-color: #00ff9d;
+  outline: 2px solid rgba(0,255,157,0.18);
+  outline-offset: 1px;
+}
+
+.btn-limpar-filtros { min-width: 72px; }
+
 /* ═══ GRID DE CAMPOS ═══ */
 .ctrl-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
-.ctrl-field        { display: flex; flex-direction: column; gap: 8px; }
-.ctrl-field-wide   { grid-column: 1 / -1; }
+.ctrl-field        { display: flex; flex-direction: column; gap: 8px; grid-column: span 1; min-width: 0; }
+.ctrl-field-wide   { grid-column: span 2; }
 
 .ctrl-field > span {
   font-size: 0.65rem;
@@ -204,6 +282,27 @@ html.ctrl-page body {
   letter-spacing: 2px;
   color: #6a6a7e;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.status-select-shell {
+  --status-color: #00FF9D;
+  position: relative;
+  min-width: 0;
+}
+
+.status-select-dot {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--status-color);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--status-color), transparent 45%);
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .ctrl-field input,
@@ -214,11 +313,13 @@ html.ctrl-page body {
   color: #f0f0f0;
   background: #08080b;
   border: 1px solid #232333;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 13px 15px;
   outline: none;
   text-transform: uppercase;
   min-height: 52px;
+  width: 100%;
+  min-width: 0;
   transition: all 0.2s;
 }
 .ctrl-field input:focus,
@@ -239,6 +340,11 @@ html.ctrl-page body {
   background-position: right 15px center;
   background-size: 16px;
   padding-right: 40px;
+}
+
+.status-select-shell select {
+  padding-left: 42px;
+  border-color: color-mix(in srgb, var(--status-color), #232333 65%);
 }
 
 /* Cores das options do select de status */
@@ -308,11 +414,36 @@ html.ctrl-page body {
   gap: 8px;
 }
 
+.hist-head,
 .hist-item {
   display: grid;
-  grid-template-columns: 70px 1fr 1fr 40px;
+  grid-template-columns: 145px 70px minmax(180px, 1.4fr) minmax(120px, 0.8fr) minmax(220px, 1.5fr) 44px;
   gap: 8px;
   align-items: center;
+}
+
+.hist-head {
+  padding: 0 4px 8px;
+  color: #71807d;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hist-item {
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.018);
+}
+
+.hist-data {
+  padding: 0 4px;
+  color: #71807d;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .hist-item input {
@@ -327,6 +458,8 @@ html.ctrl-page body {
   outline: none;
   text-transform: uppercase;
   transition: border-color 0.15s;
+  width: 100%;
+  min-width: 0;
 }
 .hist-item input:focus { border-color: #00ff9d; }
 .hist-item input.invalido { border-color: #ff4d4d; }
@@ -336,8 +469,8 @@ html.ctrl-page body {
   color: #6a6a7e;
   border: 1px solid #232333;
   border-radius: 10px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   font-size: 1.1rem;
   font-weight: 800;
   cursor: pointer;
@@ -345,6 +478,13 @@ html.ctrl-page body {
   transition: all 0.15s;
 }
 .hist-rm:hover { color: #ff4d4d; border-color: #ff4d4d; }
+
+.hist-vazio {
+  padding: 20px 4px 4px;
+  color: #71807d;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+}
 
 /* ═══ BOTÕES ═══ */
 .btn {
@@ -355,7 +495,8 @@ html.ctrl-page body {
   color: #00ff9d;
   background: transparent;
   border: 1px solid #232333;
-  border-radius: 10px;
+  border-radius: 8px;
+  min-height: 44px;
   padding: 10px 16px;
   cursor: pointer;
   text-transform: uppercase;
@@ -430,7 +571,7 @@ html.ctrl-page body {
   color: #000000;
   background: #00ff9d;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px 28px;
   cursor: pointer;
   text-transform: uppercase;
@@ -462,18 +603,32 @@ html.ctrl-page .auth-overlay {
 
 /* ═══ RESPONSIVO ═══ */
 @media (max-width: 640px) {
+  .ctrl-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ctrl-grid { grid-template-columns: 1fr; }
+  .ctrl-field, .ctrl-field-wide { grid-column: auto; }
+
+  .hist-head { display: none; }
+
+  .hist-filtros {
+    grid-template-columns: 1fr 1fr;
+  }
+  .btn-limpar-filtros { grid-column: 1 / -1; }
 
   .hist-item {
-    grid-template-columns: 60px 1fr 40px;
-    grid-template-rows: auto auto;
+    grid-template-columns: 64px minmax(0, 1fr) 44px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "data data remover"
+      "doca motorista remover"
+      "placa status status";
     gap: 6px;
   }
-  .hist-item .hist-doca      { grid-column: 1 / 2; grid-row: 1; }
-  .hist-item .hist-motorista { grid-column: 2 / 3; grid-row: 1; }
-  .hist-item .hist-placa     { grid-column: 3 / 4; grid-row: 1; }
-  .hist-item .hist-status    { grid-column: 1 / -1; grid-row: 2; }
-  .hist-item .hist-rm        { grid-column: 3 / 4; grid-row: 1; }
+  .hist-item .hist-data      { grid-area: data; }
+  .hist-item .hist-doca      { grid-area: doca; }
+  .hist-item .hist-motorista { grid-area: motorista; }
+  .hist-item .hist-placa     { grid-area: placa; }
+  .hist-item .hist-status    { grid-area: status; }
+  .hist-item .hist-rm        { grid-area: remover; }
 
   .ctrl-acoes           { flex-direction: column; align-items: stretch; }
   .ctrl-publicar-area   { justify-content: stretch; }
@@ -481,6 +636,25 @@ html.ctrl-page .auth-overlay {
 
   .ctrl-header { flex-direction: column; align-items: stretch; gap: 16px; }
   .ctrl-header-acoes { justify-content: center; }
+
+  .ctrl-acoes {
+    position: sticky;
+    bottom: 12px;
+    z-index: 40;
+    padding: 12px;
+    border: 1px solid #253033;
+    border-radius: 12px;
+    background: rgba(8, 11, 12, 0.92);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.42);
+    backdrop-filter: blur(14px);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .ctrl-tabs { grid-template-columns: repeat(6, minmax(44px, 1fr)); }
+  .ctrl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ctrl-field, .ctrl-field-wide { grid-column: span 1; }
+  .ctrl-field-wide { grid-column: 1 / -1; }
 }
 
 @media (max-width: 380px) {

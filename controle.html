@@ -6,7 +6,7 @@
   <title>Controle · Painel de Motoristas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="controle.css" />
   <link rel="manifest" href="manifest.json" />
@@ -26,10 +26,7 @@
       <p class="auth-erro" id="auth-erro"></p>
       <p class="auth-bloqueio" id="auth-bloqueio" style="display:none;"></p>
       <button class="auth-btn" id="auth-btn" type="button">ENTRAR</button>
-      <a href="index.html" class="auth-voltar">← Voltar ao painel</a>
-      <div class="credenciais">
-        <strong>Usuário:</strong> dpa &nbsp;|&nbsp; <strong>Senha:</strong> 1234
-      </div>
+      <a href="index.html" class="auth-voltar">Voltar ao painel</a>
     </div>
   </div>
 
@@ -43,8 +40,8 @@
         <p>Selecione a doca, edite os campos e clique em Publicar</p>
       </div>
       <div class="ctrl-header-acoes">
-        <a href="index.html" class="ctrl-link" target="_blank">↗ Ver painel TV</a>
-        <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">⏻</button>
+        <a href="index.html" class="ctrl-link" target="_blank">Ver painel TV</a>
+        <button class="ctrl-link ctrl-link-warn" id="btn-sair" type="button" title="Sair">Sair</button>
       </div>
     </header>
 
@@ -71,15 +68,18 @@
 
         <label class="ctrl-field">
           <span>Status</span>
-          <select id="in-status">
-            <option>AGUARDANDO MOTORISTA</option>
-            <option>CARREGAMENTO</option>
-            <option>CARREGAMENTO FINALIZADO</option>
-            <option>DESCARREGAMENTO</option>
-            <option>DESCARREGAMENTO FINALIZADO</option>
-            <option>EM CONFERÊNCIA</option>
-            <option>LIBERADO</option>
-          </select>
+          <div class="status-select-shell" id="status-select-shell">
+            <span class="status-select-dot" aria-hidden="true"></span>
+            <select id="in-status">
+              <option>AGUARDANDO MOTORISTA</option>
+              <option>CARREGAMENTO</option>
+              <option>CARREGAMENTO FINALIZADO</option>
+              <option>DESCARREGAMENTO</option>
+              <option>DESCARREGAMENTO FINALIZADO</option>
+              <option>EM CONFERÊNCIA</option>
+              <option>LIBERADO</option>
+            </select>
+          </div>
         </label>
 
         <label class="ctrl-field ctrl-field-wide">
@@ -125,7 +125,35 @@
     <section class="ctrl-card">
       <div class="ctrl-card-header">
         <h2>Histórico recente</h2>
-        <button class="btn btn-sm" id="add-historico" type="button">+ Adicionar</button>
+        <button class="btn btn-sm" id="add-historico" type="button">Adicionar item</button>
+      </div>
+      <div class="hist-filtros" role="search" aria-label="Filtrar histórico">
+        <label>
+          <span>Buscar</span>
+          <input type="search" id="hist-busca" placeholder="Motorista ou placa" autocomplete="off" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select id="hist-filtro-status">
+            <option value="">Todos os status</option>
+            <option>AGUARDANDO MOTORISTA</option>
+            <option>CARREGAMENTO</option>
+            <option>CARREGAMENTO FINALIZADO</option>
+            <option>DESCARREGAMENTO</option>
+            <option>DESCARREGAMENTO FINALIZADO</option>
+            <option>EM CONFERÊNCIA</option>
+            <option>LIBERADO</option>
+          </select>
+        </label>
+        <button class="btn btn-ghost btn-limpar-filtros" id="hist-limpar" type="button">Limpar</button>
+      </div>
+      <div class="hist-head" aria-hidden="true">
+        <span>Data / hora</span>
+        <span>Doca</span>
+        <span>Motorista</span>
+        <span>Placa</span>
+        <span>Status</span>
+        <span></span>
       </div>
       <div id="hist-lista" class="hist-lista"></div>
     </section>
@@ -134,9 +162,9 @@
     <div class="ctrl-acoes">
       <div class="btn-group-esq">
         <button class="btn btn-ghost" id="resetar" type="button">Resetar dados</button>
-        <button class="btn btn-exportar" id="btn-exportar" type="button">⬇ Exportar JSON</button>
+        <button class="btn btn-exportar" id="btn-exportar" type="button">Exportar JSON</button>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <button class="btn btn-importar" type="button" style="margin:0;">⬆ Importar JSON</button>
+          <button class="btn btn-importar" type="button" style="margin:0;">Importar JSON</button>
           <input type="file" id="input-importar" accept=".json" style="display:none;" />
         </label>
       </div>
@@ -173,6 +201,10 @@
     let docaAtiva = "1";
     let _timer         = null;
     let _temAlteracoes = false;
+    let filtroHistoricoBusca = "";
+    let filtroHistoricoStatus = "";
+    let filtroHistoricoBusca = "";
+    let filtroHistoricoStatus = "";
 
     const CAMPOS = {
       "in-status":    "status",
@@ -273,7 +305,15 @@
         if (el) el.value = d[key] || "";
       });
       document.getElementById("in-paletizada").checked = !!d.paletizada;
+      atualizarIndicadorStatus();
       renderHistorico();
+    }
+
+    function atualizarIndicadorStatus() {
+      const select = document.getElementById("in-status");
+      const shell = document.getElementById("status-select-shell");
+      if (!select || !shell) return;
+      shell.style.setProperty("--status-color", STATUS_CORES[select.value] || "#00FF9D");
     }
 
     function vincularCampos() {
@@ -294,6 +334,7 @@
           }
           docaAtual()[key] = v;
           docaAtual().atualizadoEm = Date.now();
+          if (key === "status") atualizarIndicadorStatus();
           marcarPendente();
         });
       });
@@ -305,15 +346,48 @@
     }
 
     // ── Histórico ──
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[char]));
+    }
+
+    function formatarDataHora(ts) {
+      if (!ts) return "—";
+      return new Date(ts).toLocaleString("pt-BR", {
+        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+      });
+    }
+
     function renderHistorico() {
       const cont = document.getElementById("hist-lista");
-      cont.innerHTML = (estado.historico || []).slice(0, 10).map((h, i) => `
+      const historicoCompleto = estado.historico || [];
+      const historico = historicoCompleto
+        .map((h, indice) => ({ h, indice }))
+        .filter(({ h }) => {
+          const busca = filtroHistoricoBusca.toUpperCase();
+          const texto = `${h.motorista || ""} ${h.placa || ""}`.toUpperCase();
+          const okBusca = !busca || texto.includes(busca);
+          const okStatus = !filtroHistoricoStatus || (h.status || "") === filtroHistoricoStatus;
+          return okBusca && okStatus;
+        })
+        .slice(0, 20);
+      if (!historico.length) {
+        const mensagem = historicoCompleto.length
+          ? "Nenhum registro corresponde aos filtros."
+          : "Nenhum atendimento registrado ainda.";
+        cont.innerHTML = `<p class="hist-vazio">${mensagem}</p>`;
+        return;
+      }
+
+      cont.innerHTML = historico.map(({ h, indice }) => `
         <div class="hist-item">
-          <input class="hist-doca"      data-i="${i}" data-k="doca"      value="${h.doca || ""}"      placeholder="D" maxlength="2" />
-          <input class="hist-motorista" data-i="${i}" data-k="motorista" value="${h.motorista || ""}" placeholder="NOME" />
-          <input class="hist-placa"     data-i="${i}" data-k="placa"     value="${formatarPlaca(h.placa || "")}" placeholder="PLACA" maxlength="8" />
-          <input class="hist-status"    data-i="${i}" data-k="status"    value="${h.status || ""}"    placeholder="STATUS" />
-          <button class="hist-rm" data-i="${i}" type="button" title="Remover">×</button>
+          <time class="hist-data" datetime="${h.ts ? new Date(h.ts).toISOString() : ""}">${escapeHtml(formatarDataHora(h.ts))}</time>
+          <input class="hist-doca" data-i="${indice}" data-k="doca" value="${escapeHtml(h.doca || "")}" placeholder="D" maxlength="2" inputmode="numeric" aria-label="Doca do registro ${indice + 1}" />
+          <input class="hist-motorista" data-i="${indice}" data-k="motorista" value="${escapeHtml(h.motorista || "")}" placeholder="NOME" aria-label="Motorista do registro ${indice + 1}" />
+          <input class="hist-placa" data-i="${indice}" data-k="placa" value="${escapeHtml(formatarPlaca(h.placa || ""))}" placeholder="PLACA" maxlength="8" aria-label="Placa do registro ${indice + 1}" />
+          <input class="hist-status" data-i="${indice}" data-k="status" value="${escapeHtml(h.status || "")}" placeholder="STATUS" aria-label="Status do registro ${indice + 1}" />
+          <button class="hist-rm" data-i="${indice}" type="button" title="Remover registro ${indice + 1}" aria-label="Remover registro ${indice + 1}">×</button>
         </div>
       `).join("");
 
@@ -346,6 +420,22 @@
         estado.historico.unshift({ doca: docaAtiva, motorista: "", status: "AGUARDANDO MOTORISTA", placa: "", ts: Date.now() });
         renderHistorico();
         marcarPendente();
+      });
+
+      document.getElementById("hist-busca").addEventListener("input", (event) => {
+        filtroHistoricoBusca = event.target.value.trim();
+        renderHistorico();
+      });
+      document.getElementById("hist-filtro-status").addEventListener("change", (event) => {
+        filtroHistoricoStatus = event.target.value;
+        renderHistorico();
+      });
+      document.getElementById("hist-limpar").addEventListener("click", () => {
+        filtroHistoricoBusca = "";
+        filtroHistoricoStatus = "";
+        document.getElementById("hist-busca").value = "";
+        document.getElementById("hist-filtro-status").value = "";
+        renderHistorico();
       });
     }
 
